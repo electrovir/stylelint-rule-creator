@@ -3,6 +3,7 @@
         "alwaysStrict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "commonjs",
+        "declaration": true,
         "target": "ES2018",
         "noImplicitAny": true,
         "noImplicitReturns": true,
