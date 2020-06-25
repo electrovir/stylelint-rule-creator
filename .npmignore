@@ -1,0 +1,8 @@
+.github
+.vscode
+dist/test/
+src
+.prettierrc.json
+jest.config.json
+prettierignore
+tsconfig.json
