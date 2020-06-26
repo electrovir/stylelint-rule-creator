@@ -18,7 +18,7 @@ export type Rule<MessagesType extends BaseMessagesType> = {
  * restrictive type (which extends this type) is preferred to ensure better type safety.
  */
 export type BaseMessagesType = {
-    [key: string]: () => string;
+    [key: string]: (...args: any[]) => string;
 };
 
 /**
@@ -52,10 +52,7 @@ export type RuleContext = {
  * This is used as an argument to the rule callback when creating a rule.
  * It contains option, context, and parse result information.
  */
-export type RuleExecutionInfo<
-    PrimaryOptionType,
-    SecondaryOptionsType extends object | undefined
-> = {
+export type RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType> = {
     primaryOption: PrimaryOptionType;
     secondaryOptionsObject?: SecondaryOptionsType;
     context: RuleContext;
@@ -88,17 +85,13 @@ export type RuleExecutionInfo<
  *                          stylelint.utils.ruleMessages because it includes information that has
  *                          already been provided.
  */
-export type RuleCallback<
-    PrimaryOptionType,
-    SecondaryOptionsType extends object | undefined,
-    MessagesType
-> = (
+export type RuleCallback<PrimaryOptionType, SecondaryOptionsType, MessagesType> = (
     reportCallback: ReportCallback,
     messageCallbacks: MessagesType,
     callbackInput: RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType>,
 ) => void | PromiseLike<void>;
 
-type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType extends object | undefined> = (
+type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
     primaryOption: PrimaryOptionType,
     secondaryOptionsObject?: SecondaryOptionsType,
     context?: RuleContext,
@@ -131,11 +124,15 @@ type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType extends object 
 export function createRule<
     MessagesType extends BaseMessagesType,
     PrimaryOptionType = boolean | string,
-    SecondaryOptionsType extends object | undefined = undefined
+    SecondaryOptionsType = undefined
 >(
     ruleName: string,
     messages: MessagesType,
-    ruleCallback: RuleCallback<PrimaryOptionType, SecondaryOptionsType, MessagesType>,
+    ruleCallback: RuleCallback<
+        PrimaryOptionType | undefined,
+        SecondaryOptionsType | undefined,
+        MessagesType
+    >,
 ): Rule<MessagesType> {
     const messageCallbacks: MessagesType = utils.ruleMessages(ruleName, messages);
 
