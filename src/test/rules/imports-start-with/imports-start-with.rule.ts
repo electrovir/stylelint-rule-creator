@@ -37,10 +37,10 @@ function isOptions(input: {[key: string]: any}): input is Options {
     return true;
 }
 
-export const leadingUnderscoreRule = createRule<typeof messages, Options>(
-    `skeleton/leading-underscore`,
+export const leadingUnderscoreRule = createRule<typeof messages, Options>({
+    ruleName: `skeleton/leading-underscore`,
     messages,
-    (reportCallback, messageCallbacks, {primaryOption, root}) => {
+    ruleCallback: (reportCallback, messageCallbacks, {primaryOption, root}) => {
         if (!primaryOption) {
             return;
         } else if (!isOptions(primaryOption as any)) {
@@ -73,4 +73,4 @@ export const leadingUnderscoreRule = createRule<typeof messages, Options>(
             }
         });
     },
-);
+});

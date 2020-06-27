@@ -52,12 +52,17 @@ export type RuleContext = {
  * This is used as an argument to the rule callback when creating a rule.
  * It contains option, context, and parse result information.
  */
-export type RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType> = {
+export type RuleExecutionInfo<
+    PrimaryOptionType,
+    SecondaryOptionsType,
+    OptionsCallbackResultType
+> = {
     primaryOption: PrimaryOptionType;
     secondaryOptionsObject?: SecondaryOptionsType;
     context: RuleContext;
     root: Root;
     result: Result;
+    optionsCallbackResult?: OptionsCallbackResultType;
 };
 
 /**
@@ -85,10 +90,19 @@ export type RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType> = {
  *                          stylelint.utils.ruleMessages because it includes information that has
  *                          already been provided.
  */
-export type RuleCallback<PrimaryOptionType, SecondaryOptionsType, MessagesType> = (
+export type RuleCallback<
+    PrimaryOptionType,
+    SecondaryOptionsType,
+    MessagesType,
+    OptionsCallbackResultType
+> = (
     reportCallback: ReportCallback,
     messageCallbacks: MessagesType,
-    callbackInput: RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType>,
+    callbackInput: RuleExecutionInfo<
+        PrimaryOptionType,
+        SecondaryOptionsType,
+        OptionsCallbackResultType
+    >,
 ) => void | PromiseLike<void>;
 
 type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
@@ -96,6 +110,11 @@ type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
     secondaryOptionsObject?: SecondaryOptionsType,
     context?: RuleContext,
 ) => (root: Root, result: Result) => void;
+
+type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, SecondaryOptionsType> = (
+    primary: PrimaryOptionType | undefined,
+    secondary: SecondaryOptionsType | undefined,
+) => OptionsCallbackResultType;
 
 /**
  * Creates a self contained rule which is directly given to stylelint as the plugin export.
@@ -124,37 +143,54 @@ type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
 export function createRule<
     MessagesType extends BaseMessagesType,
     PrimaryOptionType = boolean | string,
-    SecondaryOptionsType = undefined
->(
-    ruleName: string,
-    messages: MessagesType,
+    SecondaryOptionsType = undefined,
+    OptionsCallbackResultType = undefined
+>(inputObject: {
+    ruleName: string;
+    messages: MessagesType;
     ruleCallback: RuleCallback<
         PrimaryOptionType | undefined,
         SecondaryOptionsType | undefined,
-        MessagesType
-    >,
-): Rule<MessagesType> {
-    const messageCallbacks: MessagesType = utils.ruleMessages(ruleName, messages);
+        MessagesType,
+        OptionsCallbackResultType | undefined
+    >;
+    optionsCallback?: OptionsCallback<
+        OptionsCallbackResultType,
+        PrimaryOptionType | undefined,
+        SecondaryOptionsType | undefined
+    >;
+}): Rule<MessagesType> {
+    const messageCallbacks: MessagesType = utils.ruleMessages(
+        inputObject.ruleName,
+        inputObject.messages,
+    );
 
     const plugin: RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
         primaryOption,
         secondaryOptionsObject?,
         context?,
-    ) => (root, result) => {
-        const reportCallback: ReportCallback = violation => {
-            utils.report({...violation, result, ruleName: ruleName});
+    ) => {
+        const optionsCallbackResult =
+            inputObject.optionsCallback &&
+            inputObject.optionsCallback(primaryOption, secondaryOptionsObject);
+
+        return (root, result) => {
+            const reportCallback: ReportCallback = violation => {
+                utils.report({...violation, result, ruleName: inputObject.ruleName});
+            };
+            return inputObject.ruleCallback(reportCallback, messageCallbacks, {
+                primaryOption,
+                secondaryOptionsObject,
+                context: context || {},
+                root,
+                result,
+                optionsCallbackResult,
+            });
         };
-        return ruleCallback(reportCallback, messageCallbacks, {
-            primaryOption,
-            secondaryOptionsObject,
-            context: context || {},
-            root,
-            result,
-        });
     };
 
     return {
-        ...createPlugin(ruleName, plugin as Plugin),
+        ...createPlugin(inputObject.ruleName, plugin as Plugin),
         messages: messageCallbacks,
     };
 }

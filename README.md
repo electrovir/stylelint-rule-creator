@@ -17,12 +17,12 @@ This is _all_ you need in order to create a rule:
 ```typescript
 import {createRule} from 'stylelint-rule-creator';
 
-export const myExampleRule = createRule(
-    'my-plugin-name/my-rule-name',
-    {
+export const myExampleRule = createRule({
+    ruleName: 'my-plugin-name/my-rule-name',
+    messages: {
         myMessageName: (messageInput: string) => `My message example: ${messageInput}`,
     },
-    (report, messages, {primaryOption, root}) => {
+    ruleCallback: (report, messages, {primaryOption, root}) => {
         if (!primaryOption) {
             return;
         }
@@ -37,7 +37,7 @@ export const myExampleRule = createRule(
             }
         });
     },
-);
+});
 ```
 
 For a concrete, in-use example [see this rule creation test file](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.rule.ts).
