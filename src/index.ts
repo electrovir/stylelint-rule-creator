@@ -58,11 +58,11 @@ export type RuleExecutionInfo<
     OptionsCallbackResultType
 > = {
     primaryOption: PrimaryOptionType;
-    secondaryOptionsObject?: SecondaryOptionsType;
+    secondaryOptionsObject: SecondaryOptionsType;
     context: RuleContext;
     root: Root;
     result: Result;
-    optionsCallbackResult?: OptionsCallbackResultType;
+    optionsCallbackResult: OptionsCallbackResultType;
 };
 
 /**

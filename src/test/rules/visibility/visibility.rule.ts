@@ -9,10 +9,10 @@ const messages = {
     noUseVisibility: () => `Try not to use visibility.`,
 };
 
-export const visibilityRule = createRule<typeof messages, string | undefined>({
+export const visibilityRule = createRule<typeof messages, string>({
     ruleName: 'skeleton/visibility',
     messages,
-    optionsCallback: (primary): string | undefined => {
+    optionsCallback: (primary): string => {
         return `${primary}`;
     },
     ruleCallback: (
@@ -23,6 +23,7 @@ export const visibilityRule = createRule<typeof messages, string | undefined>({
         if (!primaryOption) {
             return;
         }
+
         if (!optionsCallbackResult) {
             reportCallback({
                 message: 'Messed up options callback',
