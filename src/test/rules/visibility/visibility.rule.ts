@@ -5,14 +5,29 @@ Example rule influenced by
 https://www.codementor.io/@rudolfolah/stylelint-rules-how-to-write-your-own-rules-hhmwikafq
 */
 
-export const visibilityRule = createRule({
+const messages = {
+    noUseVisibility: () => `Try not to use visibility.`,
+};
+
+export const visibilityRule = createRule<typeof messages, string | undefined>({
     ruleName: 'skeleton/visibility',
-    messages: {
-        noUseVisibility: () => `Try not to use visibility.`,
+    messages,
+    optionsCallback: (primary): string | undefined => {
+        return `${primary}`;
     },
-    ruleCallback: (reportCallback, messageCallbacks, {primaryOption, context, root}) => {
+    ruleCallback: (
+        reportCallback,
+        messageCallbacks,
+        {primaryOption, context, root, optionsCallbackResult},
+    ) => {
         if (!primaryOption) {
             return;
+        }
+        if (!optionsCallbackResult) {
+            reportCallback({
+                message: 'Messed up options callback',
+                node: root,
+            });
         }
 
         root.walkDecls(decl => {

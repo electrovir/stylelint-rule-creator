@@ -37,7 +37,7 @@ function isOptions(input: {[key: string]: any}): input is Options {
     return true;
 }
 
-export const leadingUnderscoreRule = createRule<typeof messages, Options>({
+export const leadingUnderscoreRule = createRule<typeof messages, undefined, Options>({
     ruleName: `skeleton/leading-underscore`,
     messages,
     ruleCallback: (reportCallback, messageCallbacks, {primaryOption, root}) => {

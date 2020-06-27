@@ -142,9 +142,9 @@ type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, SecondaryOpti
  */
 export function createRule<
     MessagesType extends BaseMessagesType,
+    OptionsCallbackResultType = undefined,
     PrimaryOptionType = boolean | string,
-    SecondaryOptionsType = undefined,
-    OptionsCallbackResultType = undefined
+    SecondaryOptionsType = undefined
 >(inputObject: {
     ruleName: string;
     messages: MessagesType;
