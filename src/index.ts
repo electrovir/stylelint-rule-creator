@@ -140,6 +140,43 @@ type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, SecondaryOpti
  *                            This is a simplified and flattened version of stylelint's default
  *                            "Plugin" type in order to reduce boilerplate and code duplication.
  */
+
+export function createRule<
+    MessagesType extends BaseMessagesType,
+    OptionsCallbackResultType,
+    PrimaryOptionType = boolean | string,
+    SecondaryOptionsType = undefined
+>(inputObject: {
+    ruleName: string;
+    messages: MessagesType;
+    ruleCallback: RuleCallback<
+        PrimaryOptionType | undefined,
+        SecondaryOptionsType | undefined,
+        MessagesType,
+        OptionsCallbackResultType
+    >;
+    optionsCallback: OptionsCallback<
+        OptionsCallbackResultType,
+        PrimaryOptionType | undefined,
+        SecondaryOptionsType | undefined
+    >;
+}): Rule<MessagesType>;
+export function createRule<
+    MessagesType extends BaseMessagesType,
+    OptionsCallbackResultType,
+    PrimaryOptionType = boolean | string,
+    SecondaryOptionsType = undefined
+>(inputObject: {
+    ruleName: string;
+    messages: MessagesType;
+    ruleCallback: RuleCallback<
+        PrimaryOptionType | undefined,
+        SecondaryOptionsType | undefined,
+        MessagesType,
+        undefined
+    >;
+    optionsCallback?: undefined;
+}): Rule<MessagesType>;
 export function createRule<
     MessagesType extends BaseMessagesType,
     OptionsCallbackResultType = undefined,
