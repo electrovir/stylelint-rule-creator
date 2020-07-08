@@ -1,7 +1,7 @@
 import {createPlugin, Plugin, utils} from 'stylelint';
 import {Root, Result, Node} from 'postcss';
 
-export {getTestRuleFunction} from 'stylelint-jest-rule-tester';
+export * from 'stylelint-jest-rule-tester';
 
 /**
  * A stylelint rule. This is what is exported to stylelint from custom plugins.
@@ -105,13 +105,13 @@ export type RuleCallback<
     >,
 ) => void | PromiseLike<void>;
 
-type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
+export type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
     primaryOption: PrimaryOptionType,
     secondaryOptionsObject?: SecondaryOptionsType,
     context?: RuleContext,
 ) => (root: Root, result: Result) => void;
 
-type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, SecondaryOptionsType> = (
+export type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, SecondaryOptionsType> = (
     primary: PrimaryOptionType | undefined,
     secondary: SecondaryOptionsType | undefined,
 ) => OptionsCallbackResultType;
