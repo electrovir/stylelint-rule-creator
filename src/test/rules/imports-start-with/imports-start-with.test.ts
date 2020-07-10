@@ -1,4 +1,4 @@
-import {testRule} from '../../test-plugins';
+import {testRule} from '../../test-plugin';
 import {leadingUnderscoreRule} from './imports-start-with.rule';
 
 testRule({
