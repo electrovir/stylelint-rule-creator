@@ -9,8 +9,11 @@ const messages = {
     noUseVisibility: () => `Try not to use visibility.`,
 };
 
+/**
+ * this rule is created using the less opinionated createRule function (vs. createDefaultRule)
+ */
 export const visibilityRule = createRule<typeof messages, string>({
-    ruleName: 'skeleton/visibility',
+    ruleName: 'rule-creator/visibility',
     messages,
     optionsCallback: (primary): string => {
         return `${primary}`;

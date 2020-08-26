@@ -94,15 +94,16 @@ export type RuleCallback<
     PrimaryOptionType,
     SecondaryOptionsType,
     MessagesType,
-    OptionsCallbackResultType
-> = (
-    reportCallback: ReportCallback,
-    messageCallbacks: MessagesType,
-    callbackInput: RuleExecutionInfo<
+    OptionsCallbackResultType,
+    CallbackInput extends RuleExecutionInfo<
         PrimaryOptionType,
         SecondaryOptionsType,
         OptionsCallbackResultType
-    >,
+    > = RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType, OptionsCallbackResultType>
+> = (
+    reportCallback: ReportCallback,
+    messageCallbacks: MessagesType,
+    callbackInput: CallbackInput,
 ) => void | PromiseLike<void>;
 
 export type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (

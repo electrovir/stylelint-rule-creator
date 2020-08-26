@@ -1,10 +1,11 @@
 import {visibilityRule} from './visibility.rule';
-import {testRule} from '../../test-plugin';
+import {testRule} from '../../..';
 
 testRule({
     ruleName: visibilityRule.ruleName,
     ruleOptions: [true],
     fix: true,
+    linterOptions: {config: {plugins: ['./dist/test/test-plugin.js']}},
     accept: [
         {
             code: 'a { color: pink; }',
