@@ -206,13 +206,13 @@ export type DefaultRuleExecutionInfo<
         /**
          * Exceptions for individual lines
          */
-        lineExceptions: ParsedException[];
+        lineExceptions: RegExp[];
         /**
          * Exceptions for whole file names and paths.
          * This is matched against automatically already by createDefaultRule but the information is
          * passed here just in case the rule walk wants it for some reason.
          */
-        fileNameExceptions: ParsedException[];
+        fileNameExceptions: RegExp[];
     };
 };
 
@@ -345,9 +345,12 @@ export function createDefaultRule<
                 result: ruleExecutionInfo.result,
                 context: ruleExecutionInfo.context,
                 exceptionRegExps: {
-                    lineExceptions: ruleExecutionInfo.optionsCallbackResult.parsedLineExceptions,
-                    fileNameExceptions:
-                        ruleExecutionInfo.optionsCallbackResult.parsedFileExceptions,
+                    lineExceptions: ruleExecutionInfo.optionsCallbackResult.parsedLineExceptions.filter(
+                        (exception): exception is RegExp => exception instanceof RegExp,
+                    ),
+                    fileNameExceptions: ruleExecutionInfo.optionsCallbackResult.parsedFileExceptions.filter(
+                        (exception): exception is RegExp => exception instanceof RegExp,
+                    ),
                 },
             };
 
