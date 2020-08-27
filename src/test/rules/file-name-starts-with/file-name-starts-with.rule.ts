@@ -15,29 +15,14 @@ const messages = {
     },
 };
 
-export type FileNameStartsWithRuleOptions =
-    | (DefaultRuleOptions & {
-          startWith: string;
-      })
-    // when the mode is OFF then startWith isn't a required input
-    | (DefaultRuleOptions & {
-          mode: DefaultOptionMode.OFF;
-          startWith?: string;
-      });
+export type FileNameStartsWithRuleOptions = DefaultRuleOptions & {
+    startWith?: string;
+};
 
-function isFileNameStartsWithRuleOptions(
-    input: DefaultRuleOptions,
-): input is FileNameStartsWithRuleOptions {
-    const validatingInput = input as FileNameStartsWithRuleOptions;
-    if (
-        validatingInput.mode !== DefaultOptionMode.OFF &&
-        typeof validatingInput.startWith !== 'string'
-    ) {
-        return false;
-    }
-
-    return true;
-}
+const defaultOptions = {
+    mode: DefaultOptionMode.REQUIRE,
+    startWith: '_',
+};
 
 /**
  * this rules uses the very opinionated createdDefaultRule function which provides many benefits but
@@ -49,19 +34,8 @@ export const fileNameStartsWithRule = createDefaultRule<
 >({
     ruleName: `rule-creator/file-name-starts-with`,
     messages,
-    defaultOptions: {
-        mode: DefaultOptionMode.REQUIRE,
-        startWith: '_',
-    },
+    defaultOptions,
     ruleCallback: (report, messages, {ruleOptions, root, exceptionRegExps}) => {
-        if (!isFileNameStartsWithRuleOptions(ruleOptions)) {
-            report({
-                message: messages.invalidOptions(ruleOptions),
-                node: root,
-            });
-            return;
-        }
-
         root.walkAtRules('import', atRule => {
             if (doesMatchLineExceptions(atRule, exceptionRegExps)) {
                 return;
@@ -71,22 +45,20 @@ export const fileNameStartsWithRule = createDefaultRule<
                 .filter(param => param.match(/^['"]/))[0]
                 .replace(/['"]/g, '');
             const fileName = basename(importPath);
+            const startWith = ruleOptions.startWith || defaultOptions.startWith;
 
-            if (
-                ruleOptions.mode === DefaultOptionMode.REQUIRE &&
-                !fileName.startsWith(ruleOptions.startWith)
-            ) {
+            if (ruleOptions.mode === DefaultOptionMode.REQUIRE && !fileName.startsWith(startWith)) {
                 report({
-                    message: messages.shouldStartWith(fileName, ruleOptions.startWith),
+                    message: messages.shouldStartWith(fileName, startWith),
                     node: atRule,
                     word: atRule.toString(),
                 });
             } else if (
                 ruleOptions.mode === DefaultOptionMode.BLOCK &&
-                fileName.startsWith(ruleOptions.startWith)
+                fileName.startsWith(startWith)
             ) {
                 report({
-                    message: messages.shouldNotStartWith(fileName, ruleOptions.startWith),
+                    message: messages.shouldNotStartWith(fileName, startWith),
                     node: atRule,
                     word: atRule.toString(),
                 });

@@ -360,7 +360,17 @@ export function createDefaultRule<
     ruleName: string;
     messages: MessagesType;
     defaultOptions: RuleOptions;
-    ruleCallback: DefaultRuleCallback<MessagesType, RuleOptions | DisabledDefaultRuleOptions>;
+    ruleCallback: DefaultRuleCallback<
+        MessagesType,
+        /**
+         * Partial is used here because the user might not input all the fields needed for the
+         * subtype of DefaultRuleOptions (RuleOptions, which extends DefaultRuleOptions) and we
+         * can't validate that subtype here because we can't know all the properties. We CAN,
+         * however, and do validate that DefaultRuleOptions is at least a valid instance of
+         * DefaultRuleOptions.
+         */
+        Partial<RuleOptions> & DefaultRuleOptions
+    >;
 }): DefaultRule<RuleOptions | DisabledDefaultRuleOptions, MessagesType & DefaultRuleMessagesType> {
     const messages = {...defaultRuleInputs.messages, ...invalidOptionsMessages};
 
