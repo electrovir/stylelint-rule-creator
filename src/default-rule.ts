@@ -371,7 +371,7 @@ export function createDefaultRule<
          */
         Partial<RuleOptions> & DefaultRuleOptions
     >;
-}): DefaultRule<RuleOptions | DisabledDefaultRuleOptions, MessagesType & DefaultRuleMessagesType> {
+}): DefaultRule<RuleOptions, MessagesType & DefaultRuleMessagesType> {
     const messages = {...defaultRuleInputs.messages, ...invalidOptionsMessages};
 
     const rule = createRule<
