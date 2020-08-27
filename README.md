@@ -35,7 +35,7 @@ boolean | {
 }
 ```
 
-This type can easily be extended to add more properties to the object portion of that format ([which is done in the example `DefaultRule`](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.ts)), like so:
+This type can easily be extended to add more properties to the object portion of that format ([which is done in the example `DefaultRule`](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.rule.ts)), like so:
 
 ```typescript
 import {DefaultRuleOptions} from 'stylelint-rule-creator';
@@ -84,7 +84,7 @@ export const exampleDefaultRule = createDefaultRule<typeof messages, DefaultRule
 
 For more info, see the [source code here](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/default-rule.ts), which is heavily documented.
 
-[See this file for an example using `createDefaultRule`.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.ts)
+[See this file for an example using `createDefaultRule`.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.rule.ts)
 
 ### `DefaultRule` Testing
 
@@ -185,7 +185,7 @@ export const testRule = getTestRuleFunction({
 });
 ```
 
-In this example, `dist/index.js` should be the file which is exporting your rules as its default export. See [this plugin test file](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/test-plugins.ts) as an example of this.
+In this example, `dist/index.js` should be the file which is exporting your rules as its default export. See [this plugin test file](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/test-plugin.ts) as an example of this.
 
 #### Use testRule
 
@@ -215,4 +215,4 @@ testRule({
 });
 ```
 
-[See this file for example `Rule` tests.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.test.ts).
+[See this file for example `Rule` tests.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.test.ts)
