@@ -21,6 +21,14 @@ export type DefaultRuleOptions = {
 };
 
 /**
+ * When the mod is off, no other properties are needed. This is used in place of even types that
+ * extend DefaultRuleOptions so that the sub type properties can be ignored.
+ */
+export type DisabledDefaultRuleOptions = {
+    mode: DefaultOptionMode.OFF;
+};
+
+/**
  * Operating modes for a DefaultRule.
  */
 export enum DefaultOptionMode {
@@ -44,9 +52,10 @@ export type DefaultRuleMessagesType = typeof invalidOptionsMessages;
  * A default rule that can be directly exported to stylelint as a plugin, is extremely easy to test,
  * and has with opinions and extra type checking for rule options.
  */
-export type DefaultRule<OptionsType, MessagesType extends DefaultRuleMessagesType> = Rule<
-    MessagesType
-> & {defaultOptions: OptionsType};
+export type DefaultRule<
+    OptionsType extends DefaultRuleOptions,
+    MessagesType extends DefaultRuleMessagesType
+> = Rule<MessagesType> & {defaultOptions: OptionsType};
 
 export type ParsedException = RegExp | Error;
 
@@ -281,6 +290,20 @@ export type DefaultRuleCallback<
     executionInfo: DefaultRuleExecutionInfo<RuleOptions>,
 ) => void | PromiseLike<void>;
 
+function optionsIsDisabled<RuleOptions extends DefaultRuleOptions>(
+    input?: DisabledDefaultRuleOptions | RuleOptions,
+): input is DisabledDefaultRuleOptions {
+    if (
+        input &&
+        !input.hasOwnProperty('fileExceptions') &&
+        !input.hasOwnProperty('lineExceptions')
+    ) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /**
  * Creates a self contained rule which is directly given to stylelint as the plugin export.
  *
@@ -337,11 +360,16 @@ export function createDefaultRule<
     ruleName: string;
     messages: MessagesType;
     defaultOptions: RuleOptions;
-    ruleCallback: DefaultRuleCallback<MessagesType, RuleOptions>;
-}): DefaultRule<RuleOptions, MessagesType & DefaultRuleMessagesType> {
+    ruleCallback: DefaultRuleCallback<MessagesType, RuleOptions | DisabledDefaultRuleOptions>;
+}): DefaultRule<RuleOptions | DisabledDefaultRuleOptions, MessagesType & DefaultRuleMessagesType> {
     const messages = {...defaultRuleInputs.messages, ...invalidOptionsMessages};
 
-    const rule = createRule<typeof messages, ParsedExceptions, RuleOptions | boolean, undefined>({
+    const rule = createRule<
+        typeof messages,
+        ParsedExceptions,
+        RuleOptions | boolean | DisabledDefaultRuleOptions,
+        undefined
+    >({
         ruleName: defaultRuleInputs.ruleName,
         messages,
         ruleCallback(report, messages, ruleExecutionInfo) {
@@ -383,7 +411,7 @@ export function createDefaultRule<
             return defaultRuleInputs.ruleCallback(report, messages, defaultRuleExecutionInfo);
         },
         optionsCallback(options) {
-            if (typeof options === 'boolean') {
+            if (typeof options === 'boolean' || optionsIsDisabled(options)) {
                 return {
                     parsedFileExceptions: [],
                     parsedLineExceptions: [],

@@ -3,6 +3,7 @@ import {
     DefaultRuleMessagesType,
     DefaultRuleOptions,
     DefaultRule,
+    DisabledDefaultRuleOptions,
 } from './default-rule';
 import {Rule} from './rule';
 import {TestCase, TestRuleInput, testRule} from 'stylelint-jest-rule-tester';
@@ -77,8 +78,8 @@ function createDefaultRuleTests<
     MessagesType extends DefaultRuleMessagesType,
     RuleOptions extends DefaultRuleOptions = DefaultRuleOptions
 >(
-    rule: Rule<MessagesType>,
-    testInputs: DefaultRuleTest<RuleOptions>[],
+    rule: Readonly<Rule<MessagesType>>,
+    testInputs: Readonly<DefaultRuleTest<RuleOptions>[]>,
 ): DefaultRuleTest<RuleOptions>[] {
     const invalidOptionsTests: DefaultRuleTest<RuleOptions>[] = ([
         {},
@@ -131,7 +132,7 @@ const ExemptTestVariations: Variation[] = [
     },
     {
         ruleOptions: false,
-        descriptionSuffix: 'rule is turned off',
+        descriptionSuffix: 'rule is disabled',
     },
     {
         fileName: '/single-start-match.less',
@@ -145,7 +146,7 @@ const ExemptTestVariations: Variation[] = [
     },
     {
         fileName: '/ab.less',
-        ruleOptions: {fileExceptions: ['/**/a.less', '/*b.less']},
+        ruleOptions: {fileExceptions: ['/**/qqq.less', '/*b.less']},
         descriptionSuffix: 'inside exception file with multiple files',
     },
 ];
@@ -154,32 +155,41 @@ const ExemptTestVariations: Variation[] = [
  * Creates a list of "accept" tests which are copied from the input's reject tests but with filename
  * linter options and rule option exceptions so that they should pass.
  *
- * These tests verify that the exception logic is funtioning for the given tests.
+ * These tests verify that the exception logic is functioning for the given tests.
  *
  * @param testInput    the test input originally given in the rule's test. This is used to generate
  *                     the exempt tests.
  */
-function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions = DefaultRuleOptions>(
-    testInput: DefaultRuleTest<RuleOptions>,
-): DefaultRuleTest<RuleOptions>[] {
+function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions>(
+    testInput: Readonly<DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions>>,
+    rule: DefaultRule<RuleOptions, any>,
+): DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions>[] {
     if (!testInput.reject.length) {
         return [];
     }
 
     return ExemptTestVariations.map(variation => {
-        const inputOptions: RuleOptions =
-            typeof testInput.ruleOptions === 'object' ? testInput.ruleOptions : ({} as RuleOptions);
-        const input: DefaultRuleTest<RuleOptions> = {
+        const inputOptions: RuleOptions | DisabledDefaultRuleOptions | boolean =
+            typeof testInput.ruleOptions === 'object'
+                ? testInput.ruleOptions
+                : testInput.ruleOptions
+                ? rule.defaultOptions
+                : {mode: DefaultOptionMode.OFF};
+        const combinedRuleOptions: boolean | RuleOptions | DisabledDefaultRuleOptions =
+            inputOptions.mode === DefaultOptionMode.OFF
+                ? inputOptions
+                : typeof variation.ruleOptions === 'object'
+                ? {
+                      ...inputOptions,
+                      ...variation.ruleOptions,
+                  }
+                : variation.ruleOptions;
+
+        const input: DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions> = {
             ...testInput,
             accept: [],
             reject: [],
-            ruleOptions:
-                typeof variation.ruleOptions === 'object'
-                    ? {
-                          ...inputOptions,
-                          ...variation.ruleOptions,
-                      }
-                    : variation.ruleOptions,
+            ruleOptions: combinedRuleOptions,
             linterOptions: {
                 ...testInput.linterOptions,
                 codeFilename: variation.fileName,
@@ -187,7 +197,7 @@ function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions = De
             description: testInput.description?.concat(variation.descriptionSuffix),
         };
 
-        input.accept = input.accept.map(test => {
+        input.accept = testInput.reject.map(test => {
             return {
                 ...test,
                 description: test.description?.concat(variation.descriptionSuffix),
@@ -199,38 +209,31 @@ function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions = De
 }
 
 function createIgnoredRejectionTests<RuleOptions extends DefaultRuleOptions>(
-    tests: DefaultRuleTest<RuleOptions>[],
-) {
-    const ignoredRejections: DefaultRuleTest<RuleOptions>[] = [];
+    tests: Readonly<Readonly<DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions>>[]>,
+    rule: DefaultRule<RuleOptions | DisabledDefaultRuleOptions, any>,
+): DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions>[] {
+    const ignoredRejections: DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions>[] = [];
 
     tests.forEach(test => {
-        const allowedRejectionsTestInput: DefaultRuleTest<RuleOptions> = {
+        const allowedRejectionsTestInput: DefaultRuleTest<
+            RuleOptions | DisabledDefaultRuleOptions
+        > = {
             ...test,
             linterOptions: {
                 ...test.linterOptions,
             },
-            // all of these tests are going to pass
-            reject: [],
             // this will get filled up later
             accept: [],
             description: getExceptionTestDescription(test.description),
         };
 
         test.reject.forEach(rejectionTestCase => {
-            const allowedBecauseFileIgnoredRejection: TestCase = {
-                code: rejectionTestCase.code,
-            };
-
-            if (rejectionTestCase.description) {
-                allowedBecauseFileIgnoredRejection.description = getExceptionTestDescription(
-                    rejectionTestCase.description,
-                );
-            }
-
-            allowedRejectionsTestInput.accept.push(allowedBecauseFileIgnoredRejection);
+            rejectionTestCase.description = getExceptionTestDescription(
+                rejectionTestCase.description,
+            );
         });
 
-        ignoredRejections.push(...createIgnoredTestVariations(allowedRejectionsTestInput));
+        ignoredRejections.push(...createIgnoredTestVariations(allowedRejectionsTestInput, rule));
     });
 
     return ignoredRejections;
@@ -250,7 +253,9 @@ function createIgnoredRejectionTests<RuleOptions extends DefaultRuleOptions>(
 export function testDefaultRule<
     MessagesType extends DefaultRuleMessagesType,
     RuleOptions extends DefaultRuleOptions
->(inputs: TestDefaultRuleInput<MessagesType, RuleOptions>): void {
+>(
+    inputs: Readonly<TestDefaultRuleInput<MessagesType, RuleOptions | DisabledDefaultRuleOptions>>,
+): void {
     const paths: string[] = [];
 
     if (inputs.pluginPath) {
@@ -261,10 +266,12 @@ export function testDefaultRule<
         paths.push(...inputs.pluginPaths);
     }
 
-    const tests: DefaultRuleTest<RuleOptions>[] = createDefaultRuleTests<MessagesType, RuleOptions>(
+    const tests: DefaultRuleTest<
+        RuleOptions | DisabledDefaultRuleOptions
+    >[] = createDefaultRuleTests<MessagesType, RuleOptions | DisabledDefaultRuleOptions>(
         inputs.rule,
         inputs.tests,
-    ).concat(createIgnoredRejectionTests(inputs.tests), inputs.tests);
+    ).concat(createIgnoredRejectionTests(inputs.tests, inputs.rule), inputs.tests);
 
     tests.forEach(test =>
         testRule({
