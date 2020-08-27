@@ -149,7 +149,7 @@ function shouldBeExempt(input?: string, exceptions?: (RegExp | Error)[]): boolea
     });
 }
 
-function createExceptionGlobRegExpArray(exceptions?: any): (RegExp | Error)[] {
+function createExceptionGlobRegExpArray(exceptions?: any, globstar = true): (RegExp | Error)[] {
     // verify in case bad input
     if (!exceptions || !Array.isArray(exceptions)) {
         return [];
@@ -157,7 +157,7 @@ function createExceptionGlobRegExpArray(exceptions?: any): (RegExp | Error)[] {
 
     return exceptions.map(exception => {
         try {
-            return globToRegExp(exception, {globstar: true});
+            return globToRegExp(exception, {globstar});
         } catch (error) {
             if (error instanceof TypeError) {
                 // this indicates to later processes that an error occurred
@@ -392,7 +392,10 @@ export function createDefaultRule<
 
             return {
                 parsedFileExceptions: createExceptionGlobRegExpArray(options?.fileExceptions),
-                parsedLineExceptions: createExceptionGlobRegExpArray(options?.lineExceptions),
+                parsedLineExceptions: createExceptionGlobRegExpArray(
+                    options?.lineExceptions,
+                    false,
+                ),
             };
         },
     });

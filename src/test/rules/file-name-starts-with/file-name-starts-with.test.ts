@@ -152,6 +152,7 @@ testDefaultRule({
                 startWith: '_',
                 lineExceptions: ['*colors*', '*things*'],
             },
+            description: 'should ignore lines that match line exceptions',
             accept: [
                 {
                     code: `
@@ -159,7 +160,6 @@ testDefaultRule({
 
                         a { color: pink; }
                     `,
-                    description: 'ignores lines that match line exceptions',
                 },
                 {
                     code: `
@@ -168,7 +168,6 @@ testDefaultRule({
 
                         a { color: pink; }
                     `,
-                    description: 'ignores lines that match line exceptions',
                 },
                 {
                     code: `
@@ -176,7 +175,13 @@ testDefaultRule({
 
                         a { color: pink; }
                     `,
-                    description: 'ignores lines that match line exceptions',
+                },
+                {
+                    code: `
+                        @import "../../things";
+
+                        a { color: pink; }
+                    `,
                 },
             ],
             reject: [
