@@ -1,5 +1,10 @@
 import {basename} from 'path';
-import {DefaultRuleOptions, DefaultOptionMode, createDefaultRule} from '../../../default-rule';
+import {
+    DefaultRuleOptions,
+    DefaultOptionMode,
+    createDefaultRule,
+    doesMatchLineExceptions,
+} from '../../../default-rule';
 
 const messages = {
     shouldStartWith(importFileName: string, start: string) {
@@ -48,7 +53,7 @@ export const fileNameStartsWithRule = createDefaultRule<
         mode: DefaultOptionMode.REQUIRE,
         startWith: '_',
     },
-    ruleCallback: (report, messages, {ruleOptions, root}) => {
+    ruleCallback: (report, messages, {ruleOptions, root, exceptionRegExps}) => {
         if (!isFileNameStartsWithRuleOptions(ruleOptions)) {
             report({
                 message: messages.invalidOptions(ruleOptions),
@@ -58,6 +63,9 @@ export const fileNameStartsWithRule = createDefaultRule<
         }
 
         root.walkAtRules('import', atRule => {
+            if (doesMatchLineExceptions(atRule, exceptionRegExps)) {
+                return;
+            }
             const importPath = atRule.params
                 .split(' ')
                 .filter(param => param.match(/^['"]/))[0]

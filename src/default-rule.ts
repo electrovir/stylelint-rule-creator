@@ -8,7 +8,15 @@ import {Rule, ReportCallback, BaseMessagesType, createRule, RuleContext} from '.
  */
 export type DefaultRuleOptions = {
     mode: DefaultOptionMode;
+    /**
+     * Strings that will get converted into RegExps using glob syntax.
+     * Any files that match these will be automatically ignored.
+     */
     fileExceptions?: string[];
+    /**
+     * Strings that will get converted into RegExps using glob syntax.
+     * Rules will have to manually check each line against these using doesMatchLineExceptions.
+     */
     lineExceptions?: string[];
 };
 
@@ -76,6 +84,19 @@ export function isValidDefaultOptionsObject(input?: any): input is DefaultRuleOp
 }
 
 /**
+ * Given the default exceptionRegExps object from DefaultRuleExecutionInfo, figure out if the given
+ * node matches any of the line exceptions.
+ *
+ * @param node                the postcss node to check, likely coming straight out of a root.walk*
+ * @param exceptionRegExps    the ExceptionRegExps obtained from the ruleCallback execution info
+ *
+ * @returns                   true if any exceptions match the node, false otherwise
+ */
+export function doesMatchLineExceptions(node: Node, exceptionRegExps: ExceptionRegExps): boolean {
+    return exceptionRegExps.lineExceptions.some(exception => node.toString().match(exception));
+}
+
+/**
  * Checks if the given variable is a valid object for the fileExceptions and lineExceptions
  * properties of the DefaultRuleOptions type.
  * In this case, valid means that they are either undefined (which is considered valid because it
@@ -128,7 +149,7 @@ function shouldBeExempt(input?: string, exceptions?: (RegExp | Error)[]): boolea
     });
 }
 
-function createExceptionRegExpArray(exceptions?: any): (RegExp | Error)[] {
+function createExceptionGlobRegExpArray(exceptions?: any): (RegExp | Error)[] {
     // verify in case bad input
     if (!exceptions || !Array.isArray(exceptions)) {
         return [];
@@ -176,6 +197,22 @@ function shouldRunDefaultRule(
 }
 
 /**
+ * RegExps parsed from the user's string exceptions
+ */
+export type ExceptionRegExps = {
+    /**
+     * Exceptions for individual lines
+     */
+    lineExceptions: RegExp[];
+    /**
+     * Exceptions for whole file names and paths.
+     * This is matched against automatically already by createDefaultRule but the information is
+     * passed here just in case the rule walk wants it for some reason.
+     */
+    fileNameExceptions: RegExp[];
+};
+
+/**
  * This is the object that gets passed into ruleCallback with all the current rule execution
  * information, as seen below. In particular, this includes the rule's input options and exception
  * regular expressions.
@@ -202,18 +239,7 @@ export type DefaultRuleExecutionInfo<
     /**
      * RegExps parsed from the user's string exceptions
      */
-    exceptionRegExps: {
-        /**
-         * Exceptions for individual lines
-         */
-        lineExceptions: RegExp[];
-        /**
-         * Exceptions for whole file names and paths.
-         * This is matched against automatically already by createDefaultRule but the information is
-         * passed here just in case the rule walk wants it for some reason.
-         */
-        fileNameExceptions: RegExp[];
-    };
+    exceptionRegExps: ExceptionRegExps;
 };
 
 /**
@@ -365,8 +391,8 @@ export function createDefaultRule<
             }
 
             return {
-                parsedFileExceptions: createExceptionRegExpArray(options?.fileExceptions),
-                parsedLineExceptions: createExceptionRegExpArray(options?.lineExceptions),
+                parsedFileExceptions: createExceptionGlobRegExpArray(options?.fileExceptions),
+                parsedLineExceptions: createExceptionGlobRegExpArray(options?.lineExceptions),
             };
         },
     });
