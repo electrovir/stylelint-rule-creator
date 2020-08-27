@@ -48,10 +48,10 @@ export const fileNameStartsWithRule = createDefaultRule<
         mode: DefaultOptionMode.REQUIRE,
         startWith: '_',
     },
-    ruleCallback: (report, messages, {primaryOption, root}) => {
-        if (!isFileNameStartsWithRuleOptions(primaryOption)) {
+    ruleCallback: (report, messages, {ruleOptions, root}) => {
+        if (!isFileNameStartsWithRuleOptions(ruleOptions)) {
             report({
-                message: messages.invalidOptions(primaryOption),
+                message: messages.invalidOptions(ruleOptions),
                 node: root,
             });
             return;
@@ -65,20 +65,20 @@ export const fileNameStartsWithRule = createDefaultRule<
             const fileName = basename(importPath);
 
             if (
-                primaryOption.mode === DefaultOptionMode.REQUIRE &&
-                !fileName.startsWith(primaryOption.startWith)
+                ruleOptions.mode === DefaultOptionMode.REQUIRE &&
+                !fileName.startsWith(ruleOptions.startWith)
             ) {
                 report({
-                    message: messages.shouldStartWith(fileName, primaryOption.startWith),
+                    message: messages.shouldStartWith(fileName, ruleOptions.startWith),
                     node: atRule,
                     word: atRule.toString(),
                 });
             } else if (
-                primaryOption.mode === DefaultOptionMode.BLOCK &&
-                fileName.startsWith(primaryOption.startWith)
+                ruleOptions.mode === DefaultOptionMode.BLOCK &&
+                fileName.startsWith(ruleOptions.startWith)
             ) {
                 report({
-                    message: messages.shouldNotStartWith(fileName, primaryOption.startWith),
+                    message: messages.shouldNotStartWith(fileName, ruleOptions.startWith),
                     node: atRule,
                     word: atRule.toString(),
                 });

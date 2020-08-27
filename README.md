@@ -4,15 +4,135 @@ _This is not an official [stylelint](https://stylelint.io) package._
 
 **Create custom stylelint rules with less boilerplate.**
 
-This package greatly reduces the complexity of creating custom stylelint rules. All that is needed is calling a single function to generate a rule that is testable and directly exportable to stylelint as a plugin. All the necessary types are also included to help you keep everything type safe.
+This package greatly reduces the complexity of creating custom stylelint rules. All that is needed is calling a single function to generate a testable and directly exportable rule to stylelint as a plugin. All the necessary types are also included to keep everything type safe.
 
-## Usage
+There are two ways of creating a decreased-boilerplate rule with this package. Both export an object which can be directly exported as a `Plugin` for stylint.
+
+-   There's the opinionated `DefaultRule` created with `createDefaultRule`. `DefaultRule` is very easy to test, automatically generates tests based on those supplied to it, and is much more type safe.
+-   There's the bare-bones `Rule` created with `createRule`. This is less opinionated than `DefaultRule` but requires more checking in the rule and setup for tests.
+
+If possible, prefer using `DefaultRule` with `createDefaultRule` to have the best experience.
+
+## Installation
 
 ```bash
 npm install stylelint-rule-creator
 ```
 
-This is _all_ you need in order to create a rule:
+## `createDefaultRule` Usage
+
+This is the recommended way of creating a rule.
+
+`createDefaultRule` creates a `DefaultRule` object which greatly reduces boilerplate needed for type checking and testing. Extra tests are automatically generated from the tests you supply. Stricter typing is enforced on `DefaultRule` and its tests.
+
+`DefaultRule` requires that the rule is always enabled with a single option (no secondary options) which is either a boolean or an object, as seen in the following type:
+
+```typescript
+boolean | {
+    mode: DefaultOptionMode;
+    fileExceptions?: string[];
+    lineExceptions?: string[];
+}
+```
+
+This type can easily be extended to add more properties to the object portion of that format ([which is done in the example `DefaultRule`](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.ts)), like so:
+
+```typescript
+import {DefaultRuleOptions} from 'stylelint-rule-creator';
+
+type MyCustomRuleOptions = DefaultRuleOptions & {
+    // note that all values must be either strings or numbers because this will come straight from a stylelint config file
+    anotherProperty: string;
+};
+```
+
+If more flexibility is needed, use the simpler `createRule` which is explained in a later section.
+
+Create a `DefaultRule` like so:
+
+```typescript
+import {DefaultRuleOptions, DefaultOptionMode, createDefaultRule} from 'stylelint-rule-creator';
+
+const messages = {
+    exampleMessage(input: string) {
+        return `Example message with ${input}`;
+    },
+};
+
+export const exampleDefaultRule = createDefaultRule<typeof messages, DefaultRuleOptions>({
+    ruleName: 'my-plugin-name/my-rule-name',
+    messages,
+    defaultOptions: {
+        mode: DefaultOptionMode.REQUIRE,
+    },
+    ruleCallback: (report, messages, {ruleOptions, root}) => {
+        // whatever your rule does here
+
+        // example:
+        root.walkDecls(decl => {
+            if (decl.prop === 'visibility') {
+                report({
+                    message: messages.myMessageName(decl.value),
+                    node: decl,
+                    word: decl.value,
+                });
+            }
+        });
+    },
+});
+```
+
+For more info, see the [source code here](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/default-rule.ts), which is heavily documented.
+
+[See this file for an example using `createDefaultRule`.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.ts)
+
+### `DefaultRule` Testing
+
+Testing a `DefaultRule` (the output of `createDefaultRule`) is very simple and requires very little boilerplate.
+
+```typescript
+import {testDefaultRule, DefaultOptionMode} from 'stylelint-rule-creator';
+
+testDefaultRule({
+    rule: yourRuleHere,
+    pluginPath: 'path/to/plugin/file.js',
+    tests: [
+        {
+            ruleOptions: {
+                mode: DefaultOptionMode.REQUIRE,
+            },
+            description: 'top level description optional',
+            accept: [
+                {
+                    code: 'whatever code here',
+                    description:
+                        'lower level description optional but should exist if top level description does not',
+                },
+            ],
+            reject: [
+                {
+                    code: 'whatever code here',
+                    description:
+                        'lower level description optional but should exist if top level description does not',
+                    message:
+                        'message with rule name must be supplied for rejections (plugin-name/rule-name)',
+                },
+            ],
+        },
+        //... more tests
+    ],
+});
+```
+
+For more info, see the [default rule test source code here](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/default-rule-test.ts), which is heavily documented.
+
+[See this file for example `DefaultRule` tests.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/file-name-starts-with/file-name-starts-with.test.ts)
+
+## `createRule` Usage
+
+This creates a basic `Rule` which can be directly exported to stylelint as a plugin just as the above `DefaultRule` can be. `Rule` is much simpler than `DefaultRule` and doesn't provide as many typing or testing benefits. It, however, makes less requirements on your input rule options. For example, this allows primary and secondary options (whereas `DefaultRule` requires all information to be in a singular primary option).
+
+To create a `Rule`, use the following:
 
 ```typescript
 import {createRule} from 'stylelint-rule-creator';
@@ -23,7 +143,11 @@ export const myExampleRule = createRule({
         myMessageName: (messageInput: string) => `My message example: ${messageInput}`,
     },
     ruleCallback: (report, messages, {primaryOption, root}) => {
+        // whatever your rule does here
+
+        // example:
         if (!primaryOption) {
+            // this needs to be checked because the basic createRule function doesn't do any option checking for us
             return;
         }
 
@@ -40,13 +164,13 @@ export const myExampleRule = createRule({
 });
 ```
 
-For a concrete, in-use example [see this rule creation test file](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.rule.ts).
+[See this file for an example using `createRule`.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.rule.ts)
 
-## Testing
+### `Rule` Testing
 
-This package also exports the functionality of the [`stylelint-jest-rule-tester` package](https://www.npmjs.com/package/stylelint-jest-rule-tester).
+When not using `createDefaultRule`, testing is more verbose and requires more boilerplate.
 
-### Example
+This package exports the functionality of the [`stylelint-jest-rule-tester` package](https://www.npmjs.com/package/stylelint-jest-rule-tester) to be used for these testing purposes.
 
 #### Create testRule
 
@@ -91,4 +215,4 @@ testRule({
 });
 ```
 
-For an actual example of this in use, [see this rule test file](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.test.ts).
+[See this file for example `Rule` tests.](https://github.com/electrovir/stylelint-rule-creator/blob/master/src/test/rules/visibility/visibility.test.ts).

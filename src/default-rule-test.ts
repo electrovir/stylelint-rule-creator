@@ -8,8 +8,8 @@ import {Rule} from './rule';
 import {TestCase, TestRuleInput, testRule} from 'stylelint-jest-rule-tester';
 
 /**
- * An actual test that is used in TestDefaultRuleInput. This is mostly the original TestRuleInput
- * from the stylelint-jest-rule-tester plugin
+ * An actual test that is used in TestDefaultRuleInput. This is just TestRuleInput from the
+ * stylelint-jest-rule-tester plugin but without the ruleName property.
  */
 export type DefaultRuleTest<RuleOptions extends DefaultRuleOptions> = Omit<
     TestRuleInput<RuleOptions | boolean>,
@@ -44,11 +44,12 @@ function createInvalidOptionsTest<
     RuleOptions extends DefaultRuleOptions = DefaultRuleOptions
 >(
     rule: Rule<MessagesType>,
+    // this uses partial here because it will be merged with the original test's options
     ruleOptions: Partial<RuleOptions> | boolean,
     tests: TestCase[],
 ): DefaultRuleTest<RuleOptions> {
     return {
-        ruleOptions: [ruleOptions as any],
+        ruleOptions: ruleOptions as RuleOptions | boolean,
         description: 'everything should be rejected when invalid options are given',
         accept: [],
         reject: tests.map(test => {
@@ -65,7 +66,7 @@ function createValidOptionsTest<RuleOptions extends DefaultRuleOptions = Default
     ruleOptions: RuleOptions | boolean,
 ): DefaultRuleTest<RuleOptions> {
     return {
-        ruleOptions: [ruleOptions],
+        ruleOptions: ruleOptions,
         description: 'valid rule options inputs should be accepted',
         reject: [],
         accept: [{code: ``}],
@@ -113,7 +114,7 @@ function getExceptionTestDescription(originalDescription?: string): string {
 
 type Variation = {
     fileName?: string;
-    ruleOptions: Partial<DefaultRuleOptions>;
+    ruleOptions: Partial<DefaultRuleOptions> | boolean;
     // this is appended to the output of the getExceptionTestDescription function
     descriptionSuffix: string;
 };
@@ -126,6 +127,10 @@ type Variation = {
 const ExemptTestVariations: Variation[] = [
     {
         ruleOptions: {mode: DefaultOptionMode.OFF},
+        descriptionSuffix: 'mode is off',
+    },
+    {
+        ruleOptions: false,
         descriptionSuffix: 'rule is turned off',
     },
     {
@@ -163,21 +168,20 @@ function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions = De
 
     return ExemptTestVariations.map(variation => {
         const inputOptions: RuleOptions =
-            typeof testInput.ruleOptions[0] === 'object'
-                ? testInput.ruleOptions[0]
-                : ({} as RuleOptions);
+            typeof testInput.ruleOptions === 'object' ? testInput.ruleOptions : ({} as RuleOptions);
         const input: DefaultRuleTest<RuleOptions> = {
             ...testInput,
             accept: [],
             reject: [],
-            ruleOptions: [
-                {
-                    ...inputOptions,
-                    ...variation.ruleOptions,
-                },
-            ],
+            ruleOptions:
+                typeof variation.ruleOptions === 'object'
+                    ? {
+                          ...inputOptions,
+                          ...variation.ruleOptions,
+                      }
+                    : variation.ruleOptions,
             linterOptions: {
-                ...testInput.ruleOptions,
+                ...testInput.linterOptions,
                 codeFilename: variation.fileName,
             },
             description: testInput.description?.concat(variation.descriptionSuffix),
@@ -232,10 +236,21 @@ function createIgnoredRejectionTests<RuleOptions extends DefaultRuleOptions>(
     return ignoredRejections;
 }
 
+/**
+ * Used to test a Rule (but only a DefaultRule) with much less boilerplate than usual.
+ * In particular, the rule name and plugin paths don't have to be repeated for every test, they only
+ * need to be defined in one spot, at the top of the "inputs" object.
+ *
+ * See src/test/rules/file-name-starts-with.test.ts in this repo for an example of how to use this.
+ *
+ * @param inputs      an object which contains all the needed information for the tests.
+ *                    See the documentation for the TestDefaultRuleInput type for more
+ *                    information on the expected properties for this type.
+ */
 export function testDefaultRule<
     MessagesType extends DefaultRuleMessagesType,
     RuleOptions extends DefaultRuleOptions
->(inputs: TestDefaultRuleInput<MessagesType, RuleOptions>) {
+>(inputs: TestDefaultRuleInput<MessagesType, RuleOptions>): void {
     const paths: string[] = [];
 
     if (inputs.pluginPath) {

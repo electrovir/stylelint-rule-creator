@@ -56,7 +56,7 @@ export type RuleExecutionInfo<
     OptionsCallbackResultType
 > = {
     primaryOption: PrimaryOptionType;
-    secondaryOptionsObject: SecondaryOptionsType;
+    secondaryOptions: SecondaryOptionsType;
     context: RuleContext;
     root: Root;
     result: Result;
@@ -67,7 +67,6 @@ export type RuleExecutionInfo<
  * This is ultimately the function that is used to create a rule.
  *
  * @param reportCallback    Example Usage:
- *
  *                          reportCallback({
  *                              message: messageCallbacks.myMessage(data1, data2),
  *                              node: declaration,
@@ -79,7 +78,6 @@ export type RuleExecutionInfo<
  *                          the need to duplicate code.
  *
  * @param messageCallbacks  Example usage:
- *
  *                          messageCallbacks.myMessage(data1, data2)
  *
  *                          this callback is intended for use in reporting violations with
@@ -87,13 +85,20 @@ export type RuleExecutionInfo<
  *                          similar to reportCallback, this callback object should be preferred over
  *                          stylelint.utils.ruleMessages because it includes information that has
  *                          already been provided.
+ *
+ * @param executionInfo     This includes all the information needed for a rule to run.
+ *
+ *                          Example usage:
+ *                          const {primaryOptions, secondaryOptions, context, root} = executionInfo;
+ *
+ *                          See the RuleExecutionInfo type for more information.
  */
 export type RuleCallback<
     PrimaryOptionType,
     SecondaryOptionsType,
     MessagesType,
     OptionsCallbackResultType,
-    CallbackInput extends RuleExecutionInfo<
+    ExecutionInfo extends RuleExecutionInfo<
         PrimaryOptionType,
         SecondaryOptionsType,
         OptionsCallbackResultType
@@ -101,12 +106,12 @@ export type RuleCallback<
 > = (
     reportCallback: ReportCallback,
     messageCallbacks: MessagesType,
-    callbackInput: CallbackInput,
+    executionInfo: ExecutionInfo,
 ) => void | PromiseLike<void>;
 
-export type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
+type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
     primaryOption: PrimaryOptionType,
-    secondaryOptionsObject?: SecondaryOptionsType,
+    secondaryOptions?: SecondaryOptionsType,
     context?: RuleContext,
 ) => (root: Root, result: Result) => void;
 
@@ -120,7 +125,7 @@ export type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, Second
  *
  * @param ruleName            the rule name string. Include the plugin prefix.
  *                            Examples:
- *                                <plugin-name>/<rule-name>
+ *                                plugin-name/rule-name
  *                                skeleton/visibility
  *                                order/properties-order
  *
@@ -139,7 +144,6 @@ export type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, Second
  *                            This is a simplified and flattened version of stylelint's default
  *                            "Plugin" type in order to reduce boilerplate and code duplication.
  */
-
 export function createRule<
     MessagesType extends BaseMessagesType,
     OptionsCallbackResultType,
@@ -203,12 +207,12 @@ export function createRule<
 
     const plugin: RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
         primaryOption,
-        secondaryOptionsObject?,
+        secondaryOptions?,
         context?,
     ) => {
         const optionsCallbackResult =
             inputObject.optionsCallback &&
-            inputObject.optionsCallback(primaryOption, secondaryOptionsObject);
+            inputObject.optionsCallback(primaryOption, secondaryOptions);
 
         return (root, result) => {
             const reportCallback: ReportCallback = violation => {
@@ -216,7 +220,7 @@ export function createRule<
             };
             return inputObject.ruleCallback(reportCallback, messageCallbacks, {
                 primaryOption,
-                secondaryOptionsObject,
+                secondaryOptions,
                 context: context || {},
                 root,
                 result,

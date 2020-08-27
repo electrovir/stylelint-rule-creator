@@ -45,6 +45,6 @@
     },
     "dependencies": {
         "glob-to-regexp": "^0.4.1",
-        "stylelint-jest-rule-tester": "^2.0.0"
+        "stylelint-jest-rule-tester": "^2.1.1"
     }
 }
