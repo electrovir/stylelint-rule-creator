@@ -107,10 +107,10 @@ function createDefaultRuleTests<
     return [...invalidOptionsTests, ...validOptionsTests];
 }
 
-function getExceptionTestDescription(originalDescription?: string): string {
+function getExceptionTestDescription(originalDescription: string, suffix: string): string {
     return `Rejection test${
         originalDescription ? ` "${originalDescription}"` : ''
-    } should pass when `;
+    } should pass when ${suffix}`;
 }
 
 type Variation = {
@@ -194,13 +194,18 @@ function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions>(
                 ...testInput.linterOptions,
                 codeFilename: variation.fileName,
             },
-            description: testInput.description?.concat(variation.descriptionSuffix),
+            description: testInput.description
+                ? getExceptionTestDescription(testInput.description, variation.descriptionSuffix)
+                : undefined,
         };
 
         input.accept = testInput.reject.map(test => {
             return {
                 ...test,
-                description: test.description?.concat(variation.descriptionSuffix),
+                description: getExceptionTestDescription(
+                    test.description || test.code,
+                    variation.descriptionSuffix,
+                ),
             };
         });
 
@@ -224,14 +229,7 @@ function createIgnoredRejectionTests<RuleOptions extends DefaultRuleOptions>(
             },
             // this will get filled up later
             accept: [],
-            description: getExceptionTestDescription(test.description),
         };
-
-        test.reject.forEach(rejectionTestCase => {
-            rejectionTestCase.description = getExceptionTestDescription(
-                rejectionTestCase.description,
-            );
-        });
 
         ignoredRejections.push(...createIgnoredTestVariations(allowedRejectionsTestInput, rule));
     });
@@ -254,6 +252,7 @@ export function testDefaultRule<
     MessagesType extends DefaultRuleMessagesType,
     RuleOptions extends DefaultRuleOptions
 >(
+    // somehow only require Partial<RuleOptions> as input to the tests property of this
     inputs: Readonly<TestDefaultRuleInput<MessagesType, RuleOptions | DisabledDefaultRuleOptions>>,
 ): void {
     const paths: string[] = [];
@@ -266,6 +265,7 @@ export function testDefaultRule<
         paths.push(...inputs.pluginPaths);
     }
 
+    // TODO: add line exception auto tests
     const tests: DefaultRuleTest<
         RuleOptions | DisabledDefaultRuleOptions
     >[] = createDefaultRuleTests<MessagesType, RuleOptions | DisabledDefaultRuleOptions>(
