@@ -197,5 +197,54 @@ testDefaultRule({
                 },
             ],
         },
+        {
+            ruleOptions: {
+                mode: DefaultOptionMode.REQUIRE,
+                startWith: '_',
+                fileExceptions: ['/**/path/**/*.less', '/**/path/**/*.css'],
+            },
+            linterOptions: {
+                codeFilename: 'path/to-directory/and/filename.css',
+            },
+            description: 'should ignore whole files that match file exceptions',
+            accept: [
+                {
+                    code: `
+                        @import "colors";
+                        @import "a";
+                        @import "b";
+                        @import "c";
+                        @import "d";
+
+                        a { color: pink; }
+                    `,
+                },
+            ],
+            reject: [],
+        },
+        {
+            ruleOptions: {
+                mode: DefaultOptionMode.REQUIRE,
+                startWith: '_',
+                lineExceptions: ['*"{a,b,c,d}"*'],
+            },
+            linterOptions: {
+                codeFilename: 'path/to-directory/and/filename.css',
+            },
+            description: 'should ignore lines with or matching',
+            accept: [
+                {
+                    code: `
+                        @import "a";
+                        @import "b";
+                        @import "c";
+                        @import "d";
+
+                        a { color: pink; }
+                    `,
+                },
+            ],
+            reject: [],
+        },
     ],
 });

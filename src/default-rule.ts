@@ -166,7 +166,7 @@ function createExceptionGlobRegExpArray(exceptions?: any, globstar = true): (Reg
 
     return exceptions.map(exception => {
         try {
-            return globToRegExp(exception, {globstar});
+            return globToRegExp(exception, {globstar, extended: true});
         } catch (error) {
             if (error instanceof TypeError) {
                 // this indicates to later processes that an error occurred
