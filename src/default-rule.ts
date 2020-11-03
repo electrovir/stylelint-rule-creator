@@ -158,7 +158,14 @@ function shouldBeExempt(input?: string, exceptions?: (RegExp | Error)[]): boolea
     });
 }
 
-function createExceptionGlobRegExpArray(exceptions?: any, globstar = true): (RegExp | Error)[] {
+export function createGlobRegExp(input: string, forFilePaths = true): RegExp {
+    return globToRegExp(input, {globstar: forFilePaths, extended: true});
+}
+
+function createExceptionGlobRegExpArray(
+    exceptions?: any,
+    forFilePaths?: boolean,
+): (RegExp | Error)[] {
     // verify in case bad input
     if (!exceptions || !Array.isArray(exceptions)) {
         return [];
@@ -166,7 +173,7 @@ function createExceptionGlobRegExpArray(exceptions?: any, globstar = true): (Reg
 
     return exceptions.map(exception => {
         try {
-            return globToRegExp(exception, {globstar, extended: true});
+            return createGlobRegExp(exception, forFilePaths);
         } catch (error) {
             if (error instanceof TypeError) {
                 // this indicates to later processes that an error occurred
