@@ -1,6 +1,6 @@
 {
     "name": "stylelint-rule-creator",
-    "version": "4.0.9",
+    "version": "4.1.1",
     "description": "Create custom stylelint rules with less boilerplate.",
     "keywords": [
         "stylelint",
@@ -28,9 +28,9 @@
     "author": "electrovir (github.com/electrovir)",
     "main": "dist/index.js",
     "scripts": {
-        "prepublishOnly": "rm -rf node_modules; npm install && npm run test",
+        "prepublishOnly": "npm run test:full",
         "spellcheck": "virmator spellcheck --extendable-config",
-        "test": "rm -rf dist; tsc && jest",
+        "test": "virmator compile && jest",
         "test:full": "npm run spellcheck && npm run format check && npm test",
         "format": "virmator format"
     },

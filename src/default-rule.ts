@@ -1,5 +1,6 @@
 import globToRegExp from 'glob-to-regexp';
 import {Node, Result, Root} from 'postcss';
+import {toPosixPath} from 'virmator/dist/augments/string';
 import {BaseMessagesType, createRule, ReportCallback, Rule, RuleContext} from './rule';
 
 /**
@@ -188,7 +189,11 @@ function shouldRunDefaultRule(
             node: inputs.root,
         });
         return false;
-    } else if (shouldBeExempt(inputs.result.opts?.from, inputs.exceptionRegExps)) {
+    } else if (
+        inputs.result.opts?.from &&
+        (shouldBeExempt(inputs.result.opts?.from, inputs.exceptionRegExps) ||
+            shouldBeExempt(toPosixPath(inputs.result.opts?.from), inputs.exceptionRegExps))
+    ) {
         return false;
     }
 
