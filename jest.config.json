@@ -1,4 +1,4 @@
 {
-    "testEnvironment": "node",
-    "rootDir": "dist"
+    "rootDir": "dist",
+    "testEnvironment": "node"
 }

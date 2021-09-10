@@ -1,9 +1,9 @@
+import {Node, Result, Root} from 'postcss';
 import {createPlugin, Plugin, utils} from 'stylelint';
-import {Root, Result, Node} from 'postcss';
 
 /**
- * A stylelint rule. This is what is exported to stylelint from custom plugins.
- * It is also used for easy testing of rules.
+ * A stylelint rule. This is what is exported to stylelint from custom plugins. It is also used for
+ * easy testing of rules.
  */
 export type Rule<MessagesType extends BaseMessagesType> = {
     ruleName: string;
@@ -32,14 +32,12 @@ export type RuleViolation = {
     line?: number;
 };
 
-/**
- * A function that is called in order to report a stylelint rule violation
- */
+/** A function that is called in order to report a stylelint rule violation */
 export type ReportCallback = (violation: RuleViolation) => void;
 
 /**
- * Small set of information regarding the context in which a rule is running.
- * Most importantly, it includes information on whether auto-fix has been enabled.
+ * Small set of information regarding the context in which a rule is running. Most importantly, it
+ * includes information on whether auto-fix has been enabled.
  */
 export type RuleContext = {
     fix?: boolean;
@@ -47,51 +45,38 @@ export type RuleContext = {
 };
 
 /**
- * This is used as an argument to the rule callback when creating a rule.
- * It contains option, context, and parse result information.
+ * This is used as an argument to the rule callback when creating a rule. It contains option,
+ * context, and parse result information.
  */
-export type RuleExecutionInfo<
-    PrimaryOptionType,
-    SecondaryOptionsType,
-    OptionsCallbackResultType
-> = {
-    primaryOption: PrimaryOptionType;
-    secondaryOptions: SecondaryOptionsType;
-    context: RuleContext;
-    root: Root;
-    result: Result;
-    optionsCallbackResult: OptionsCallbackResultType;
-};
+export type RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType, OptionsCallbackResultType> =
+    {
+        primaryOption: PrimaryOptionType;
+        secondaryOptions: SecondaryOptionsType;
+        context: RuleContext;
+        root: Root;
+        result: Result;
+        optionsCallbackResult: OptionsCallbackResultType;
+    };
 
 /**
  * This is ultimately the function that is used to create a rule.
  *
- * @param reportCallback    Example Usage:
- *                          reportCallback({
- *                              message: messageCallbacks.myMessage(data1, data2),
- *                              node: declaration,
- *                              word: declaration.value,
- *                          })
+ * @param reportCallback Example Usage: reportCallback({ message: messageCallbacks.myMessage(data1,
+ *   data2), node: declaration, word: declaration.value, }).
  *
- *                          this function should be used instead of stylelint.utils.report as it
- *                          wraps everything up nicely with the information already given, reducing
- *                          the need to duplicate code.
+ *   This function should be used instead of stylelint.utils.report as it wraps everything up nicely
+ *   with the information already given, reducing the need to duplicate code.
+ * @param messageCallbacks Example usage: messageCallbacks.myMessage(data1, data2).
  *
- * @param messageCallbacks  Example usage:
- *                          messageCallbacks.myMessage(data1, data2)
+ *   This callback is intended for use in reporting violations with reportCallback, as demonstrated in
+ *   the reportCallback example above similar to reportCallback, this callback object should be
+ *   preferred over stylelint.utils.ruleMessages because it includes information that has already
+ *   been provided.
+ * @param executionInfo This includes all the information needed for a rule to run.
  *
- *                          this callback is intended for use in reporting violations with
- *                          reportCallback, as demonstrated in the reportCallback example above
- *                          similar to reportCallback, this callback object should be preferred over
- *                          stylelint.utils.ruleMessages because it includes information that has
- *                          already been provided.
+ *   Example usage: const {primaryOptions, secondaryOptions, context, root} = executionInfo;
  *
- * @param executionInfo     This includes all the information needed for a rule to run.
- *
- *                          Example usage:
- *                          const {primaryOptions, secondaryOptions, context, root} = executionInfo;
- *
- *                          See the RuleExecutionInfo type for more information.
+ *   See the RuleExecutionInfo type for more information.
  */
 export type RuleCallback<
     PrimaryOptionType,
@@ -102,7 +87,7 @@ export type RuleCallback<
         PrimaryOptionType,
         SecondaryOptionsType,
         OptionsCallbackResultType
-    > = RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType, OptionsCallbackResultType>
+    > = RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType, OptionsCallbackResultType>,
 > = (
     reportCallback: ReportCallback,
     messageCallbacks: MessagesType,
@@ -123,32 +108,21 @@ export type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, Second
 /**
  * Creates a self contained rule which is directly given to stylelint as the plugin export.
  *
- * @param ruleName            the rule name string. Include the plugin prefix.
- *                            Examples:
- *                                plugin-name/rule-name
- *                                skeleton/visibility
- *                                order/properties-order
- *
- * @param messages            an object with message callbacks used to generate violation messages
- *                            which are reported back to the user. This is also used for testing.
- *                            Do not include the rule name suffix, it is added automatically.
- *                            Example:
- *                                {
- *                                    noUseVisibility: () => "Don't use the visibility property."
- *                                    invalidVisibilityValue: (value) =>
- *                                        `Don't use visibility with value "${value}"`
- *                                }
- *
- * @param ruleCallback        this is the actual rule. This is what stylelint will call when linting
- *                            occurs with this rule loaded and enabled.
- *                            This is a simplified and flattened version of stylelint's default
- *                            "Plugin" type in order to reduce boilerplate and code duplication.
+ * @param ruleName The rule name string. Include the plugin prefix. Examples: plugin-name/rule-name
+ *   skeleton/visibility order/properties-order
+ * @param messages An object with message callbacks used to generate violation messages which are
+ *   reported back to the user. This is also used for testing. Do not include the rule name suffix,
+ *   it is added automatically. Example: { noUseVisibility: () => "Don't use the visibility
+ *   property." invalidVisibilityValue: (value) => `Don't use visibility with value "${value}"` }
+ * @param ruleCallback This is the actual rule. This is what stylelint will call when linting occurs
+ *   with this rule loaded and enabled. This is a simplified and flattened version of stylelint's
+ *   default "Plugin" type in order to reduce boilerplate and code duplication.
  */
 export function createRule<
     MessagesType extends BaseMessagesType,
     OptionsCallbackResultType,
     PrimaryOptionType = boolean | string,
-    SecondaryOptionsType = undefined
+    SecondaryOptionsType = undefined,
 >(inputObject: {
     ruleName: string;
     messages: MessagesType;
@@ -168,7 +142,7 @@ export function createRule<
     MessagesType extends BaseMessagesType,
     OptionsCallbackResultType,
     PrimaryOptionType = boolean | string,
-    SecondaryOptionsType = undefined
+    SecondaryOptionsType = undefined,
 >(inputObject: {
     ruleName: string;
     messages: MessagesType;
@@ -184,7 +158,7 @@ export function createRule<
     MessagesType extends BaseMessagesType,
     OptionsCallbackResultType = undefined,
     PrimaryOptionType = boolean | string,
-    SecondaryOptionsType = undefined
+    SecondaryOptionsType = undefined,
 >(inputObject: {
     ruleName: string;
     messages: MessagesType;
@@ -194,11 +168,13 @@ export function createRule<
         MessagesType,
         OptionsCallbackResultType | undefined
     >;
-    optionsCallback?: OptionsCallback<
-        OptionsCallbackResultType,
-        PrimaryOptionType | undefined,
-        SecondaryOptionsType | undefined
-    >;
+    optionsCallback?:
+        | OptionsCallback<
+              OptionsCallbackResultType,
+              PrimaryOptionType | undefined,
+              SecondaryOptionsType | undefined
+          >
+        | undefined;
 }): Rule<MessagesType> {
     const messageCallbacks: MessagesType = utils.ruleMessages(
         inputObject.ruleName,
@@ -215,7 +191,7 @@ export function createRule<
             inputObject.optionsCallback(primaryOption, secondaryOptions);
 
         return (root, result) => {
-            const reportCallback: ReportCallback = violation => {
+            const reportCallback: ReportCallback = (violation) => {
                 utils.report({...violation, result, ruleName: inputObject.ruleName});
             };
             return inputObject.ruleCallback(reportCallback, messageCallbacks, {

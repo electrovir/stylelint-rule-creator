@@ -1,6 +1,6 @@
-import {fileNameStartsWithRule} from './file-name-starts-with.rule';
-import {testDefaultRule} from '../../../default-rule-test';
 import {DefaultOptionMode} from '../../../default-rule';
+import {testDefaultRule} from '../../../default-rule-test';
+import {fileNameStartsWithRule} from './file-name-starts-with.rule';
 
 testDefaultRule({
     rule: fileNameStartsWithRule,

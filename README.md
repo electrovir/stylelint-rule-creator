@@ -69,7 +69,7 @@ export const exampleDefaultRule = createDefaultRule<typeof messages, DefaultRule
         // whatever your rule does here
 
         // example:
-        root.walkDecls(decl => {
+        root.walkDecls((decl) => {
             if (decl.prop === 'visibility') {
                 report({
                     message: messages.myMessageName(decl.value),
@@ -151,7 +151,7 @@ export const myExampleRule = createRule({
             return;
         }
 
-        root.walkDecls(decl => {
+        root.walkDecls((decl) => {
             if (decl.prop === 'visibility') {
                 report({
                     message: messages.myMessageName(decl.value),

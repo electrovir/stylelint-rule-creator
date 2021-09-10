@@ -1,23 +1,23 @@
-import * as globToRegExp from 'glob-to-regexp';
-import {Result, Node, Root} from 'postcss';
-import {Rule, ReportCallback, BaseMessagesType, createRule, RuleContext} from './rule';
+import globToRegExp from 'glob-to-regexp';
+import {Node, Result, Root} from 'postcss';
+import {BaseMessagesType, createRule, ReportCallback, Rule, RuleContext} from './rule';
 
 /**
- * The required base options type for a DefaultRule.
- * An object matching this type is what must be provided in the stylelint config for one of these rules.
+ * The required base options type for a DefaultRule. An object matching this type is what must be
+ * provided in the stylelint config for one of these rules.
  */
 export type DefaultRuleOptions = {
     mode: DefaultOptionMode;
     /**
-     * Strings that will get converted into RegExps using glob syntax.
-     * Any files that match these will be automatically ignored.
+     * Strings that will get converted into RegExps using glob syntax. Any files that match these
+     * will be automatically ignored.
      */
-    fileExceptions?: string[];
+    fileExceptions?: string[] | undefined;
     /**
-     * Strings that will get converted into RegExps using glob syntax.
-     * Rules will have to manually check each line against these using doesMatchLineExceptions.
+     * Strings that will get converted into RegExps using glob syntax. Rules will have to manually
+     * check each line against these using doesMatchLineExceptions.
      */
-    lineExceptions?: string[];
+    lineExceptions?: string[] | undefined;
 };
 
 /**
@@ -28,21 +28,13 @@ export type DisabledDefaultRuleOptions = {
     mode: DefaultOptionMode.OFF;
 };
 
-/**
- * Operating modes for a DefaultRule.
- */
+/** Operating modes for a DefaultRule. */
 export enum DefaultOptionMode {
-    /**
-     * Turn the rule completely off.
-     */
+    /** Turn the rule completely off. */
     OFF = 'off',
-    /**
-     * Require the rule to be matched.
-     */
+    /** Require the rule to be matched. */
     REQUIRE = 'require',
-    /**
-     * Require the rule to NOT be matched.
-     */
+    /** Require the rule to NOT be matched. */
     BLOCK = 'block',
 }
 
@@ -54,7 +46,7 @@ export type DefaultRuleMessagesType = typeof invalidOptionsMessages;
  */
 export type DefaultRule<
     OptionsType extends DefaultRuleOptions,
-    MessagesType extends DefaultRuleMessagesType
+    MessagesType extends DefaultRuleMessagesType,
 > = Rule<MessagesType> & {defaultOptions: OptionsType};
 
 export type ParsedException = RegExp | Error;
@@ -68,10 +60,9 @@ export type ParsedExceptions = {
  * Checks if the given variable can be considered a valid implementation of the DefaultRuleOptions
  * type. This is a type guard function as well for TypeScript purposes.
  *
- * @param input   the variable to test. Can be anything, though if it's not a valid DefaultRuleOptions
- *                object then it returns false as soon as possible.
- *
- * @returns       true if valid, false if not.
+ * @param input The variable to test. Can be anything, though if it's not a valid DefaultRuleOptions
+ *   object then it returns false as soon as possible.
+ * @returns True if valid, false if not.
  */
 export function isValidDefaultOptionsObject(input?: any): input is DefaultRuleOptions {
     if (typeof input !== 'object') {
@@ -96,23 +87,22 @@ export function isValidDefaultOptionsObject(input?: any): input is DefaultRuleOp
  * Given the default exceptionRegExps object from DefaultRuleExecutionInfo, figure out if the given
  * node matches any of the line exceptions.
  *
- * @param node                the postcss node to check, likely coming straight out of a root.walk*
- * @param exceptionRegExps    the ExceptionRegExps obtained from the ruleCallback execution info
- *
- * @returns                   true if any exceptions match the node, false otherwise
+ * @param node The postcss node to check, likely coming straight out of a root.walk*
+ * @param exceptionRegExps The ExceptionRegExps obtained from the ruleCallback execution info
+ * @returns True if any exceptions match the node, false otherwise
  */
 export function doesMatchLineExceptions(node: Node, exceptionRegExps: ExceptionRegExps): boolean {
-    return exceptionRegExps.lineExceptions.some(exception => node.toString().match(exception));
+    return exceptionRegExps.lineExceptions.some((exception) => node.toString().match(exception));
 }
 
 /**
  * Checks if the given variable is a valid object for the fileExceptions and lineExceptions
- * properties of the DefaultRuleOptions type.
- * In this case, valid means that they are either undefined (which is considered valid because it
- * is possible to not even pass in anything for these properties) or an array of strings.
+ * properties of the DefaultRuleOptions type. In this case, valid means that they are either
+ * undefined (which is considered valid because it is possible to not even pass in anything for
+ * these properties) or an array of strings.
  *
- * @param input         the variable to check as a valid match for fileExceptions and lineExceptions
- * @returns             true if input is an array of strings or undefined, otherwise false
+ * @param input The variable to check as a valid match for fileExceptions and lineExceptions
+ * @returns True if input is an array of strings or undefined, otherwise false
  */
 export function isValidDefaultOptionsExceptions(input?: any): input is string[] | undefined {
     if (!input) {
@@ -121,7 +111,7 @@ export function isValidDefaultOptionsExceptions(input?: any): input is string[] 
     if (!Array.isArray(input)) {
         return false;
     }
-    if (input.some(value => typeof value !== 'string')) {
+    if (input.some((value) => typeof value !== 'string')) {
         return false;
     }
     return true;
@@ -130,8 +120,8 @@ export function isValidDefaultOptionsExceptions(input?: any): input is string[] 
 /**
  * Checks if the given variable is a valid member of the DefaultOptionMode enum.
  *
- * @param input      the variable to check
- * @returns          true if input is a valid member of DefaultOptionMode, false otherwise
+ * @param input The variable to check
+ * @returns True if input is a valid member of DefaultOptionMode, false otherwise
  */
 export function isDefaultOptionMode(input?: any): input is DefaultOptionMode {
     if (typeof input !== 'string') {
@@ -150,7 +140,7 @@ function shouldBeExempt(input?: string, exceptions?: (RegExp | Error)[]): boolea
     if (!exceptions || !input) {
         return false;
     }
-    return exceptions.some(regExp => {
+    return exceptions.some((regExp) => {
         if (regExp instanceof Error) {
             return false;
         }
@@ -164,7 +154,7 @@ function createExceptionGlobRegExpArray(exceptions?: any, globstar = true): (Reg
         return [];
     }
 
-    return exceptions.map(exception => {
+    return exceptions.map((exception) => {
         try {
             return globToRegExp(exception, {globstar, extended: true});
         } catch (error) {
@@ -205,18 +195,14 @@ function shouldRunDefaultRule(
     return true;
 }
 
-/**
- * RegExps parsed from the user's string exceptions
- */
+/** RegExps parsed from the user's string exceptions */
 export type ExceptionRegExps = {
-    /**
-     * Exceptions for individual lines
-     */
+    /** Exceptions for individual lines */
     lineExceptions: RegExp[];
     /**
-     * Exceptions for whole file names and paths.
-     * This is matched against automatically already by createDefaultRule but the information is
-     * passed here just in case the rule walk wants it for some reason.
+     * Exceptions for whole file names and paths. This is matched against automatically already by
+     * createDefaultRule but the information is passed here just in case the rule walk wants it for
+     * some reason.
      */
     fileNameExceptions: RegExp[];
 };
@@ -226,64 +212,43 @@ export type ExceptionRegExps = {
  * information, as seen below. In particular, this includes the rule's input options and exception
  * regular expressions.
  */
-export type DefaultRuleExecutionInfo<
-    RuleOptions extends DefaultRuleOptions = DefaultRuleOptions
-> = {
-    /**
-     * The options passed
-     */
-    ruleOptions: RuleOptions;
-    /**
-     * Includes basic other context, importantly the fix property.
-     */
-    context: RuleContext;
-    /**
-     * The root node. Use this to walk the file.
-     */
-    root: Root;
-    /**
-     * Result output from postcss. The file name can be reached here through result.opts?.from
-     */
-    result: Result;
-    /**
-     * RegExps parsed from the user's string exceptions
-     */
-    exceptionRegExps: ExceptionRegExps;
-};
+export type DefaultRuleExecutionInfo<RuleOptions extends DefaultRuleOptions = DefaultRuleOptions> =
+    {
+        /** The options passed */
+        ruleOptions: RuleOptions;
+        /** Includes basic other context, importantly the fix property. */
+        context: RuleContext;
+        /** The root node. Use this to walk the file. */
+        root: Root;
+        /** Result output from postcss. The file name can be reached here through result.opts?.from */
+        result: Result;
+        /** RegExps parsed from the user's string exceptions */
+        exceptionRegExps: ExceptionRegExps;
+    };
 
 /**
  * This is ultimately the function that is used to create a rule.
  *
- * @param reportCallback    Example Usage:
- *                          reportCallback({
- *                              message: messageCallbacks.myMessage(data1, data2),
- *                              node: declaration,
- *                              word: declaration.value,
- *                          })
+ * @param reportCallback Example Usage: reportCallback({ message: messageCallbacks.myMessage(data1,
+ *   data2), node: declaration, word: declaration.value, })
  *
- *                          this function should be used instead of stylelint.utils.report as it
- *                          wraps everything up nicely with the information already given, reducing
- *                          the need to duplicate code.
+ *   This function should be used instead of stylelint.utils.report as it wraps everything up nicely
+ *   with the information already given, reducing the need to duplicate code.
+ * @param messageCallbacks Example usage: messageCallbacks.myMessage(data1, data2)
  *
- * @param messageCallbacks  Example usage:
- *                          messageCallbacks.myMessage(data1, data2)
+ *   This callback is intended for use in reporting violations with reportCallback, as demonstrated in
+ *   the reportCallback example above similar to reportCallback, this callback object should be
+ *   preferred over stylelint.utils.ruleMessages because it includes information that has already
+ *   been provided.
+ * @param executionInfo This includes all the information needed for a rule to run.
  *
- *                          this callback is intended for use in reporting violations with
- *                          reportCallback, as demonstrated in the reportCallback example above
- *                          similar to reportCallback, this callback object should be preferred over
- *                          stylelint.utils.ruleMessages because it includes information that has
- *                          already been provided.
+ *   Example usage: const {ruleOptions, context, root} = executionInfo;
  *
- * @param executionInfo     This includes all the information needed for a rule to run.
- *
- *                          Example usage:
- *                          const {ruleOptions, context, root} = executionInfo;
- *
- *                          See the DefaultRuleExecutionInfo type for more information.
+ *   See the DefaultRuleExecutionInfo type for more information.
  */
 export type DefaultRuleCallback<
     MessagesType extends BaseMessagesType,
-    RuleOptions extends DefaultRuleOptions = DefaultRuleOptions
+    RuleOptions extends DefaultRuleOptions = DefaultRuleOptions,
 > = (
     reportCallback: ReportCallback,
     messageCallbacks: MessagesType & DefaultRuleMessagesType,
@@ -307,39 +272,26 @@ function optionsIsDisabled<RuleOptions extends DefaultRuleOptions>(
 /**
  * Creates a self contained rule which is directly given to stylelint as the plugin export.
  *
- * @param ruleName            the rule name string. Include the plugin prefix.
- *                            Examples:
- *                                plugin-name/rule-name
- *                                skeleton/visibility
- *                                order/properties-order
- *
- * @param messages            an object with message callbacks used to generate violation messages
- *                            which are reported back to the user. This is also used for testing.
- *                            Do not include the rule name suffix, it is added automatically.
- *                            Example:
- *                                {
- *                                    noUseVisibility: () => "Don't use the visibility property."
- *                                    invalidVisibilityValue: (value) =>
- *                                        `Don't use visibility with value "${value}"`
- *                                }
- *
- * @param defaultOptions      an object which will be passed to ruleCallback as the user's supplied
- *                            options if the user actually supplied just the boolean value of true.
- *
- * @param ruleCallback        the actual rule. This is what stylelint will call when linting
- *                            occurs with this rule loaded and enabled.
- *                            This is a simplified and flattened version of stylelint's default
- *                            "Plugin" type in order to reduce boilerplate and code duplication.
+ * @param ruleName The rule name string. Include the plugin prefix. Examples: plugin-name/rule-name
+ *   skeleton/visibility order/properties-order
+ * @param messages An object with message callbacks used to generate violation messages which are
+ *   reported back to the user. This is also used for testing. Do not include the rule name suffix,
+ *   it is added automatically. Example: { noUseVisibility: () => "Don't use the visibility
+ *   property." invalidVisibilityValue: (value) => `Don't use visibility with value "${value}"` }
+ * @param defaultOptions An object which will be passed to ruleCallback as the user's supplied
+ *   options if the user actually supplied just the boolean value of true.
+ * @param ruleCallback The actual rule. This is what stylelint will call when linting occurs with
+ *   this rule loaded and enabled. This is a simplified and flattened version of stylelint's default
+ *   "Plugin" type in order to reduce boilerplate and code duplication.
  */
 export function createDefaultRule<
     /**
      * MessagesType
      *
-     * The type for the messages type object. This should be passed in as the following:
-     * typeof messages
+     * The type for the messages type object. This should be passed in as the following: typeof messages
      *
-     * The messages variable should be the object of message callbacks, like the following:
-     * const messages = {messageNameHere(input: string) {return `message: ${input}`;}}
+     * The messages variable should be the object of message callbacks, like the following: const
+     * messages = {messageNameHere(input: string) {return `message: ${input}`;}}
      *
      * This way, the MessagesType becomes automatically limited ONLY to the object as instantiated.
      * Do NOT give the messages const the type BaseMessagesType, this will destroy its strictness.
@@ -355,7 +307,7 @@ export function createDefaultRule<
      * This type later gets deserialized so that the regular expressions represented in
      * DefaultRuleOptions as strings become actual instances of RegExp.
      */
-    RuleOptions extends DefaultRuleOptions = DefaultRuleOptions
+    RuleOptions extends DefaultRuleOptions = DefaultRuleOptions,
 >(defaultRuleInputs: {
     ruleName: string;
     messages: MessagesType;
@@ -409,12 +361,14 @@ export function createDefaultRule<
                 result: ruleExecutionInfo.result,
                 context: ruleExecutionInfo.context,
                 exceptionRegExps: {
-                    lineExceptions: ruleExecutionInfo.optionsCallbackResult.parsedLineExceptions.filter(
-                        (exception): exception is RegExp => exception instanceof RegExp,
-                    ),
-                    fileNameExceptions: ruleExecutionInfo.optionsCallbackResult.parsedFileExceptions.filter(
-                        (exception): exception is RegExp => exception instanceof RegExp,
-                    ),
+                    lineExceptions:
+                        ruleExecutionInfo.optionsCallbackResult.parsedLineExceptions.filter(
+                            (exception): exception is RegExp => exception instanceof RegExp,
+                        ),
+                    fileNameExceptions:
+                        ruleExecutionInfo.optionsCallbackResult.parsedFileExceptions.filter(
+                            (exception): exception is RegExp => exception instanceof RegExp,
+                        ),
                 },
             };
 

@@ -9,9 +9,7 @@ const messages = {
     noUseVisibility: () => `Try not to use visibility.`,
 };
 
-/**
- * this rule is created using the less opinionated createRule function (vs. createDefaultRule)
- */
+/** This rule is created using the less opinionated createRule function (vs. createDefaultRule) */
 export const visibilityRule = createRule<typeof messages, string>({
     ruleName: 'rule-creator/visibility',
     messages,
@@ -34,7 +32,7 @@ export const visibilityRule = createRule<typeof messages, string>({
             });
         }
 
-        root.walkDecls(decl => {
+        root.walkDecls((decl) => {
             if (decl.prop === 'visibility') {
                 if (context.fix) {
                     decl.remove();

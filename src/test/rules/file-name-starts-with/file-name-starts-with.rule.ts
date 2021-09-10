@@ -1,8 +1,8 @@
 import {basename} from 'path';
 import {
-    DefaultRuleOptions,
-    DefaultOptionMode,
     createDefaultRule,
+    DefaultOptionMode,
+    DefaultRuleOptions,
     doesMatchLineExceptions,
 } from '../../../default-rule';
 
@@ -25,7 +25,7 @@ const defaultOptions = {
 };
 
 /**
- * this rules uses the very opinionated createdDefaultRule function which provides many benefits but
+ * This rules uses the very opinionated createdDefaultRule function which provides many benefits but
  * also locks you into a certain paradigm
  */
 export const fileNameStartsWithRule = createDefaultRule<
@@ -36,14 +36,18 @@ export const fileNameStartsWithRule = createDefaultRule<
     messages,
     defaultOptions,
     ruleCallback: (report, messages, {ruleOptions, root, exceptionRegExps}) => {
-        root.walkAtRules('import', atRule => {
+        root.walkAtRules('import', (atRule) => {
             if (doesMatchLineExceptions(atRule, exceptionRegExps)) {
                 return;
             }
             const importPath = atRule.params
                 .split(' ')
-                .filter(param => param.match(/^['"]/))[0]
-                .replace(/['"]/g, '');
+                .filter((param) => param.match(/^['"]/))[0]
+                ?.replace(/['"]/g, '');
+
+            if (!importPath) {
+                throw new Error(`No import path found in ${atRule.params}`);
+            }
             const fileName = basename(importPath);
             const startWith = ruleOptions.startWith || defaultOptions.startWith;
 

@@ -1,5 +1,5 @@
-import {visibilityRule} from './visibility.rule';
 import {testRule} from '../../..';
+import {visibilityRule} from './visibility.rule';
 
 testRule({
     ruleName: visibilityRule.ruleName,
