@@ -124,7 +124,7 @@ type Variation = {
 };
 
 /**
- * Array of test variations that will be appleid to all reject test cases to verify that they are
+ * Array of test variations that will be applied to all reject test cases to verify that they are
  * accepted when ignored due to rule exceptions.
  */
 const ExemptTestVariations: Variation[] = [

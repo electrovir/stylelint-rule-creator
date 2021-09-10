@@ -31,8 +31,8 @@
         "prepublishOnly": "rm -rf node_modules; npm install && npm run test",
         "spellcheck": "virmator spellcheck --extendable-config",
         "test": "rm -rf dist; tsc && jest",
-        "test:full": "npm test && npm run spellcheck && virmator format check",
-        "format": "virmator format write"
+        "test:full": "npm run spellcheck && npm run format check && npm test",
+        "format": "virmator format"
     },
     "dependencies": {
         "glob-to-regexp": "^0.4.1",

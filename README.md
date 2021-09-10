@@ -6,7 +6,7 @@ _This is not an official [stylelint](https://stylelint.io) package._
 
 This package greatly reduces the complexity of creating custom stylelint rules. All that is needed is calling a single function to generate a testable and directly exportable rule to stylelint as a plugin. All the necessary types are also included to keep everything type safe.
 
-There are two ways of creating a decreased-boilerplate rule with this package. Both export an object which can be directly exported as a `Plugin` for stylint.
+There are two ways of creating a decreased-boilerplate rule with this package. Both export an object which can be directly exported as a `Plugin` for stylelint.
 
 -   There's the opinionated `DefaultRule` created with `createDefaultRule`. `DefaultRule` is very easy to test, automatically generates tests based on those supplied to it, and is much more type safe.
 -   There's the bare-bones `Rule` created with `createRule`. This is less opinionated than `DefaultRule` but requires more checking in the rule and setup for tests.

@@ -188,12 +188,12 @@ testDefaultRule({
                 {
                     code: `
                         @import "colors";
-                        @import "otherthing";
+                        @import "other-thing";
 
                         a { color: pink; }
                     `,
                     description: 'catches other lines that do not match line exceptions',
-                    message: fileNameStartsWithRule.messages.shouldStartWith('otherthing', '_'),
+                    message: fileNameStartsWithRule.messages.shouldStartWith('other-thing', '_'),
                 },
             ],
         },
