@@ -8,6 +8,33 @@ testDefaultRule({
     tests: [
         {
             ruleOptions: true,
+            linterOptions: {
+                syntax: 'less',
+            },
+            description: 'test different syntax',
+            accept: [
+                {
+                    code: `
+                        @import (reference) "_colors";
+
+                        a { color: pink; }
+                        
+                        .myMixin() {
+                            font-family: serif;
+                        }
+                        
+                        div {
+                            .myMixin();
+                            color: #123;
+                        }
+                    `,
+                    description: 'accepts import with startWith',
+                },
+            ],
+            reject: [],
+        },
+        {
+            ruleOptions: true,
             description: 'should work with default rule options',
             accept: [
                 {

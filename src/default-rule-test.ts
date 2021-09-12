@@ -1,5 +1,5 @@
 import {LinterOptions} from 'stylelint';
-import {TestCase, testRule, TestRuleInput} from 'stylelint-jest-rule-tester';
+import {testRule, TestRuleInput} from 'stylelint-jest-rule-tester';
 import {
     DefaultOptionMode,
     DefaultRule,
@@ -41,27 +41,34 @@ export type TestDefaultRuleInput<
           pluginPaths: string[];
       };
 
-function createInvalidOptionsTest<
+function createInvalidOptionsTests<
     MessagesType extends DefaultRuleMessagesType,
     RuleOptions extends DefaultRuleOptions = DefaultRuleOptions,
 >(
     rule: Rule<MessagesType>,
     // this uses partial here because it will be merged with the original test's options
     ruleOptions: Partial<RuleOptions> | boolean,
-    tests: TestCase[],
-): DefaultRuleTest<RuleOptions> {
-    return {
-        ruleOptions: ruleOptions as RuleOptions | boolean,
-        description: 'everything should be rejected when invalid options are given',
-        accept: [],
-        reject: tests.map((test) => {
-            const invalidTest = {...test, message: rule.messages.invalidOptions(ruleOptions)};
-            if (invalidTest.description) {
-                invalidTest.description = `everything in "${invalidTest.description}" should be rejected when invalid options are given`;
-            }
-            return invalidTest;
-        }),
-    };
+    testInputs: Readonly<DefaultRuleTest<RuleOptions>[]>,
+): DefaultRuleTest<RuleOptions>[] {
+    const invalidOptionsTests: DefaultRuleTest<RuleOptions>[] = testInputs.map((testInput) => {
+        const invalidOptionsTest = {
+            ...testInput,
+            ruleOptions: ruleOptions as RuleOptions | boolean,
+            description: 'everything should be rejected when invalid options are given',
+            accept: [],
+            reject: testInput.accept.map((test) => {
+                const invalidTest = {...test, message: rule.messages.invalidOptions(ruleOptions)};
+                if (invalidTest.description) {
+                    invalidTest.description = `everything in "${invalidTest.description}" should be rejected when invalid options are given`;
+                }
+                return invalidTest;
+            }),
+        };
+
+        return invalidOptionsTest;
+    });
+
+    return invalidOptionsTests;
 }
 
 function createValidOptionsTest<RuleOptions extends DefaultRuleOptions = DefaultRuleOptions>(
@@ -92,16 +99,11 @@ function createDefaultRuleTests<
             {mode: DefaultOptionMode.REQUIRE, fileExceptions: [true]},
             {mode: DefaultOptionMode.REQUIRE, fileExceptions: [{}]},
         ] as Partial<RuleOptions>[]
-    ).map((ruleOptions) =>
-        createInvalidOptionsTest(
-            rule,
-            ruleOptions,
-            testInputs.reduce(
-                (accum, testInput) => accum.concat(testInput.accept),
-                [] as TestCase[],
-            ),
-        ),
-    );
+    ).reduce((accum: DefaultRuleTest<RuleOptions>[], ruleOptions) => {
+        const invalidOptionsTest = createInvalidOptionsTests(rule, ruleOptions, testInputs);
+
+        return accum.concat(invalidOptionsTest);
+    }, []);
 
     const validOptionsTests: DefaultRuleTest<RuleOptions>[] = [true, false].map((ruleOptions) =>
         createValidOptionsTest<RuleOptions>(ruleOptions),
