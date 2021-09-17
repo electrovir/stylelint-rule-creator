@@ -2,6 +2,8 @@
 
 _This is not an official [stylelint](https://stylelint.io) package._
 
+[![tests](https://github.com/electrovir/stylelint-rule-creator/actions/workflows/virmator-tests.yml/badge.svg?branch=master)](https://github.com/electrovir/stylelint-rule-creator/actions/workflows/virmator-tests.yml)
+
 **Create custom stylelint rules with less boilerplate.**
 
 This package greatly reduces the complexity of creating custom stylelint rules. All that is needed is calling a single function to generate a testable and directly exportable rule to stylelint as a plugin. All the necessary types are also included to keep everything type safe.
