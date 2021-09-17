@@ -51,8 +51,9 @@ function createInvalidOptionsTests<
     testInputs: Readonly<DefaultRuleTest<RuleOptions>[]>,
 ): DefaultRuleTest<RuleOptions>[] {
     const invalidOptionsTests: DefaultRuleTest<RuleOptions>[] = testInputs.map((testInput) => {
-        const invalidOptionsTest = {
+        const invalidOptionsTest: DefaultRuleTest<RuleOptions> = {
             ...testInput,
+            fix: false,
             ruleOptions: ruleOptions as RuleOptions | boolean,
             description: 'everything should be rejected when invalid options are given',
             accept: [],
