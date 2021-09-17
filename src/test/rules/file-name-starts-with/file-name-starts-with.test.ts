@@ -73,6 +73,54 @@ testDefaultRule({
             ],
         },
         {
+            ruleOptions: true,
+            description: 'should work with default rule options',
+            fix: true,
+            accept: [
+                {
+                    code: `
+                        @import (reference) "_colors";
+
+                        a { color: pink; }
+                    `,
+                    description: 'accepts import with startWith',
+                },
+                {
+                    code: `
+                        @import (reference) "../../../_colors";
+                        a { color: pink; }
+                    `,
+                    description: 'accepts import with startWith and directories',
+                },
+            ],
+            reject: [
+                {
+                    code: `
+                        @import (reference) "colors";
+                        a { color: pink; }
+                    `,
+                    description: 'blocks import without startWith',
+                    message: fileNameStartsWithRule.messages.shouldStartWith('colors', '_'),
+                    fixed: `
+                        @import (reference) "_colors";
+                        a { color: pink; }
+                    `,
+                },
+                {
+                    code: `
+                        @import (reference) "../../../colors";
+                        a { color: pink; }
+                    `,
+                    description: 'blocks import with directories and without startWith',
+                    message: fileNameStartsWithRule.messages.shouldStartWith('colors', '_'),
+                    fixed: `
+                        @import (reference) "../../../_colors";
+                        a { color: pink; }
+                    `,
+                },
+            ],
+        },
+        {
             ruleOptions: {
                 // try to get this to work as well
                 mode: DefaultOptionMode.REQUIRE,

@@ -1,10 +1,15 @@
 import {basename} from 'path';
+import postcss from 'postcss';
 import {
     createDefaultRule,
     DefaultOptionMode,
     DefaultRuleOptions,
     doesMatchLineExceptions,
 } from '../../../default-rule';
+
+const thingie = postcss();
+
+thingie.use((root, result) => {});
 
 const messages = {
     shouldStartWith(importFileName: string, start: string) {
@@ -24,6 +29,24 @@ const defaultOptions = {
     startWith: '_',
 };
 
+function replaceAtRule(atRule: postcss.AtRule, newFileName: string, oldFileName: string) {
+    const newParams = atRule.params.replace(oldFileName, newFileName);
+    const replacementNode = atRule.clone({
+        params: newParams,
+    });
+    atRule.replaceWith(replacementNode);
+}
+
+function extractImportFileParam(atRule: postcss.AtRule): string {
+    const importParam = atRule.params.split(' ').filter((param) => param.match(/^['"]/))[0];
+
+    if (!importParam) {
+        throw new Error(`No import path found in ${atRule.params}`);
+    }
+
+    return importParam;
+}
+
 /**
  * This rules uses the very opinionated createdDefaultRule function which provides many benefits but
  * also locks you into a certain paradigm
@@ -35,37 +58,41 @@ export const fileNameStartsWithRule = createDefaultRule<
     ruleName: `rule-creator/file-name-starts-with`,
     messages,
     defaultOptions,
-    ruleCallback: (report, messages, {ruleOptions, root, exceptionRegExps}) => {
+    ruleCallback: (report, messages, {ruleOptions, root, context, exceptionRegExps}) => {
         root.walkAtRules('import', (atRule) => {
             if (doesMatchLineExceptions(atRule, exceptionRegExps)) {
                 return;
             }
-            const importPath = atRule.params
-                .split(' ')
-                .filter((param) => param.match(/^['"]/))[0]
-                ?.replace(/['"]/g, '');
+            const importParam = extractImportFileParam(atRule);
 
-            if (!importPath) {
-                throw new Error(`No import path found in ${atRule.params}`);
-            }
-            const fileName = basename(importPath);
+            const fileName = basename(importParam.replace(/['"]/g, ''));
             const startWith = ruleOptions.startWith || defaultOptions.startWith;
 
             if (ruleOptions.mode === DefaultOptionMode.REQUIRE && !fileName.startsWith(startWith)) {
-                report({
-                    message: messages.shouldStartWith(fileName, startWith),
-                    node: atRule,
-                    word: atRule.toString(),
-                });
+                if (context.fix) {
+                    const newFileName = `${startWith}${fileName}`;
+                    replaceAtRule(atRule, newFileName, fileName);
+                } else {
+                    report({
+                        message: messages.shouldStartWith(fileName, startWith),
+                        node: atRule,
+                        word: atRule.toString(),
+                    });
+                }
             } else if (
                 ruleOptions.mode === DefaultOptionMode.BLOCK &&
                 fileName.startsWith(startWith)
             ) {
-                report({
-                    message: messages.shouldNotStartWith(fileName, startWith),
-                    node: atRule,
-                    word: atRule.toString(),
-                });
+                if (context.fix) {
+                    const newFileName = fileName.replace(new RegExp(`^${startWith}`), '');
+                    replaceAtRule(atRule, newFileName, fileName);
+                } else {
+                    report({
+                        message: messages.shouldNotStartWith(fileName, startWith),
+                        node: atRule,
+                        word: atRule.toString(),
+                    });
+                }
             }
         });
     },
