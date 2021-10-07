@@ -1,6 +1,6 @@
+import {toPosixPath} from 'augment-vir';
 import globToRegExp from 'glob-to-regexp';
 import {Node, Result, Root} from 'postcss';
-import {toPosixPath} from 'virmator/dist/augments/string';
 import {BaseMessagesType, createRule, ReportCallback, Rule, RuleContext} from './rule';
 
 /**
