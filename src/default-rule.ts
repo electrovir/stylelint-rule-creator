@@ -1,4 +1,4 @@
-import {toPosixPath} from 'augment-vir';
+import {toPosixPath} from 'augment-vir/dist/node';
 import globToRegExp from 'glob-to-regexp';
 import {Node, Result, Root} from 'postcss';
 import {BaseMessagesType, createRule, ReportCallback, Rule, RuleContext} from './rule';

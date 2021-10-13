@@ -1,4 +1,4 @@
-import {testRule} from '../../..';
+import {testRule} from '../../../testing';
 import {visibilityRule} from './visibility.rule';
 
 testRule({
