@@ -9,7 +9,7 @@ testDefaultRule({
         {
             ruleOptions: true,
             linterOptions: {
-                syntax: 'less',
+                customSyntax: 'postcss-less',
             },
             description: 'test different syntax',
             accept: [
@@ -225,7 +225,10 @@ testDefaultRule({
             ruleOptions: {
                 mode: DefaultOptionMode.REQUIRE,
                 startWith: '_',
-                lineExceptions: ['*colors*', '*things*'],
+                lineExceptions: [
+                    '*colors*',
+                    '*things*',
+                ],
             },
             description: 'should ignore lines that match line exceptions',
             accept: [
@@ -276,7 +279,10 @@ testDefaultRule({
             ruleOptions: {
                 mode: DefaultOptionMode.REQUIRE,
                 startWith: '_',
-                fileExceptions: ['/**/path/**/*.less', '/**/path/**/*.css'],
+                fileExceptions: [
+                    '/**/path/**/*.less',
+                    '/**/path/**/*.css',
+                ],
             },
             linterOptions: {
                 codeFilename: 'path/to-directory/and/filename.css',

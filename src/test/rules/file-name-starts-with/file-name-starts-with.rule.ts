@@ -1,15 +1,11 @@
 import {basename} from 'path';
-import postcss from 'postcss';
+import {AtRule} from 'postcss';
 import {
     createDefaultRule,
     DefaultOptionMode,
     DefaultRuleOptions,
     doesMatchLineExceptions,
 } from '../../../default-rule';
-
-const thingie = postcss();
-
-thingie.use((root, result) => {});
 
 const messages = {
     shouldStartWith(importFileName: string, start: string) {
@@ -29,7 +25,7 @@ const defaultOptions = {
     startWith: '_',
 };
 
-function replaceAtRule(atRule: postcss.AtRule, newFileName: string, oldFileName: string) {
+function replaceAtRule(atRule: AtRule, newFileName: string, oldFileName: string) {
     const newParams = atRule.params.replace(oldFileName, newFileName);
     const replacementNode = atRule.clone({
         params: newParams,
@@ -37,7 +33,7 @@ function replaceAtRule(atRule: postcss.AtRule, newFileName: string, oldFileName:
     atRule.replaceWith(replacementNode);
 }
 
-function extractImportFileParam(atRule: postcss.AtRule): string {
+function extractImportFileParam(atRule: AtRule): string {
     const importParam = atRule.params.split(' ').filter((param) => param.match(/^['"]/))[0];
 
     if (!importParam) {

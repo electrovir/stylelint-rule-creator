@@ -1,5 +1,5 @@
-import {Node, Result, Root} from 'postcss';
-import {createPlugin, Plugin, utils} from 'stylelint';
+import {Node, Root} from 'postcss';
+import {createPlugin, Plugin, PostcssResult, utils} from 'stylelint';
 
 /**
  * A stylelint rule. This is what is exported to stylelint from custom plugins. It is also used for
@@ -54,7 +54,7 @@ export type RuleExecutionInfo<PrimaryOptionType, SecondaryOptionsType, OptionsCa
         secondaryOptions: SecondaryOptionsType;
         context: RuleContext;
         root: Root;
-        result: Result;
+        result: PostcssResult;
         optionsCallbackResult: OptionsCallbackResultType;
     };
 
@@ -96,9 +96,9 @@ export type RuleCallback<
 
 type RuleOptionsCallback<PrimaryOptionType, SecondaryOptionsType> = (
     primaryOption: PrimaryOptionType,
-    secondaryOptions?: SecondaryOptionsType,
-    context?: RuleContext,
-) => (root: Root, result: Result) => void;
+    secondaryOptions: SecondaryOptionsType,
+    context: RuleContext,
+) => (root: Root, result: PostcssResult) => void;
 
 export type OptionsCallback<OptionsCallbackResultType, PrimaryOptionType, SecondaryOptionsType> = (
     primary: PrimaryOptionType | undefined,

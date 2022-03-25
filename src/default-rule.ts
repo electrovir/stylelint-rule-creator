@@ -1,6 +1,7 @@
-import {toPosixPath} from 'augment-vir/dist/node';
+import {toPosixPath} from 'augment-vir/dist/node-only';
 import globToRegExp from 'glob-to-regexp';
-import {Node, Result, Root} from 'postcss';
+import {Node, Root} from 'postcss';
+import {PostcssResult} from 'stylelint';
 import {BaseMessagesType, createRule, ReportCallback, Rule, RuleContext} from './rule';
 
 /**
@@ -133,7 +134,7 @@ export function isDefaultOptionMode(input?: any): input is DefaultOptionMode {
 
 const invalidOptionsMessages = {
     invalidOptions(option: any) {
-        return `Invalid options object:\n${JSON.stringify(option, null, 4)}`;
+        return `Invalid options object:\n${option ? JSON.stringify(option, null, 4) : option}`;
     },
 };
 
@@ -173,7 +174,7 @@ function shouldRunDefaultRule(
     ruleOptions: DefaultRuleOptions | undefined,
     messages: DefaultRuleMessagesType,
     inputs: {
-        result: Result;
+        result: PostcssResult;
         root: Node;
         report: ReportCallback;
         exceptionRegExps: (RegExp | Error)[] | undefined;
@@ -226,7 +227,7 @@ export type DefaultRuleExecutionInfo<RuleOptions extends DefaultRuleOptions = De
         /** The root node. Use this to walk the file. */
         root: Root;
         /** Result output from postcss. The file name can be reached here through result.opts?.from */
-        result: Result;
+        result: PostcssResult;
         /** RegExps parsed from the user's string exceptions */
         exceptionRegExps: ExceptionRegExps;
     };

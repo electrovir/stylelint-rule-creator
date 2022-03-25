@@ -106,11 +106,15 @@ function createDefaultRuleTests<
         return accum.concat(invalidOptionsTest);
     }, []);
 
-    const validOptionsTests: DefaultRuleTest<RuleOptions>[] = [true, false].map((ruleOptions) =>
-        createValidOptionsTest<RuleOptions>(ruleOptions),
-    );
+    const validOptionsTests: DefaultRuleTest<RuleOptions>[] = [
+        true,
+        false,
+    ].map((ruleOptions) => createValidOptionsTest<RuleOptions>(ruleOptions));
 
-    return [...invalidOptionsTests, ...validOptionsTests];
+    return [
+        ...invalidOptionsTests,
+        ...validOptionsTests,
+    ];
 }
 
 function getExceptionTestDescription(originalDescription: string, suffix: string): string {
@@ -151,7 +155,12 @@ const ExemptTestVariations: Variation[] = [
     },
     {
         fileName: '/ab.less',
-        ruleOptions: {fileExceptions: ['/**/qqq.less', '/*b.less']},
+        ruleOptions: {
+            fileExceptions: [
+                '/**/qqq.less',
+                '/*b.less',
+            ],
+        },
         descriptionSuffix: 'inside exception file with multiple files',
     },
 ];
@@ -190,9 +199,16 @@ function createIgnoredTestVariations<RuleOptions extends DefaultRuleOptions>(
                   }
                 : variation.ruleOptions;
 
-        const withFileName: Partial<Pick<LinterOptions, 'codeFilename'>> = variation.fileName
-            ? {codeFilename: variation.fileName}
-            : {};
+        const customSyntax = variation.fileName?.endsWith('.less')
+            ? {customSyntax: 'postcss-less'}
+            : undefined;
+        const withFileName: Partial<Pick<LinterOptions, 'codeFilename' | 'customSyntax'>> =
+            variation.fileName
+                ? {
+                      ...customSyntax,
+                      codeFilename: variation.fileName,
+                  }
+                : {};
 
         const withDescription: Partial<
             Pick<DefaultRuleTest<RuleOptions | DisabledDefaultRuleOptions>, 'description'>
